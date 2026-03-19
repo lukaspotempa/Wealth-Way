@@ -393,7 +393,7 @@ const assets = ref<AutoBattleAsset[]>([
 
 // ─── Category filter ─────────────────────────────────────────────────────────
 
-const categoryFilter = ref<string>('All')
+const categoryFilter = ref<string>('Indices')
 
 const allCategories = computed(() => {
   const cats = new Set(assets.value.map((a) => a.category))
@@ -1163,7 +1163,7 @@ const resultInsights = computed(() => {
 
               <div class="category-filter">
                 <button
-                  v-for="cat in ['All', 'Indices', 'Bonds', 'Commodities', 'CH Stocks', 'US Stocks']"
+                  v-for="cat in ['Indices', 'Bonds', 'Commodities', 'CH Stocks', 'US Stocks']"
                   :key="cat"
                   class="category-btn"
                   :class="{ 'category-btn--active': categoryFilter === cat }"
