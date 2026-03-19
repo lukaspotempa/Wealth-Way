@@ -113,35 +113,50 @@ export const useJourneyStore = defineStore('journey', () => {
     ]
 
     // Determine status for each node
-    return allNodes.map((node, index) => {
-      const nodeNumber = index + 1
+    const statuses = new Map<string, 'locked' | 'available' | 'completed'>()
+    
+    for (let i = 0; i < allNodes.length; i++) {
+      const node = allNodes[i]
+      const nodeNumber = i + 1
 
       if (completedNodes.value.has(node.id)) {
-        return { ...node, status: 'completed' as const }
+        statuses.set(node.id, 'completed')
+        continue
       }
 
-      // Unlock nodes up to starting level
-      if (nodeNumber <= startLevel) {
-        return { ...node, status: 'available' as const }
-      }
+      const prevNode = i > 0 ? allNodes[i - 1] : null
+      const prevStatus = prevNode ? statuses.get(prevNode.id) : null
 
-      // A node is available if the previous node is completed
-      if (index === 0) {
-        return { ...node, status: 'available' as const }
+      if (i === 0) {
+        statuses.set(node.id, nodeNumber <= startLevel ? (node.type === 'checkpoint' ? 'completed' : 'available') : 'available')
+      } else if (prevStatus === 'completed') {
+        if (node.type === 'checkpoint') {
+          // Checkpoints auto-complete if reached
+          statuses.set(node.id, 'completed')
+        } else {
+          statuses.set(node.id, 'available')
+        }
+      } else {
+        if (nodeNumber <= startLevel) {
+          statuses.set(node.id, node.type === 'checkpoint' ? 'completed' : 'available')
+        } else {
+          statuses.set(node.id, 'locked')
+        }
       }
+    }
 
-      const prevNode = allNodes[index - 1]
-      if (prevNode && completedNodes.value.has(prevNode.id)) {
-        return { ...node, status: 'available' as const }
-      }
-
-      return { ...node, status: 'locked' as const }
-    })
+    return allNodes.map((node) => ({
+      ...node,
+      status: statuses.get(node.id) || 'locked'
+    }))
   })
 
+  // We should count progress without checkpoints
   const progressPercent = computed(() => {
-    if (nodes.value.length === 0) return 0
-    return Math.round((completedNodes.value.size / nodes.value.length) * 100)
+    const playableNodes = nodes.value.filter(n => n.type !== 'checkpoint')
+    if (playableNodes.length === 0) return 0
+    const completedCount = playableNodes.filter(n => completedNodes.value.has(n.id)).length
+    return Math.round((completedCount / playableNodes.length) * 100)
   })
 
   function completeNode(nodeId: string) {

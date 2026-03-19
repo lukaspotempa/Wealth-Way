@@ -235,7 +235,7 @@ function openLevel(node: (typeof nodes.value)[0]) {
   transition: transform 0.2s ease, filter 0.2s ease;
 }
 .node-group.unlocked .node-circle {
-  filter: drop-shadow(0 0 6px rgba(255,203,0,0.3));
+
 }
 .node-group.unlocked:hover .node-circle,
 .node-group.unlocked:hover .node-icon-svg {

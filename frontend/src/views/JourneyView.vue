@@ -273,7 +273,7 @@ const greeting = computed(() => {
             <span class="tooltip-type" :style="{ backgroundColor: selectedNode.color }">{{ selectedNode.type }}</span>
           </div>
           <p class="tooltip-desc">{{ selectedNode.description }}</p>
-          <div class="tooltip-actions">
+          <div v-if="selectedNode.type !== 'checkpoint'" class="tooltip-actions">
             <button class="tooltip-btn" @click="startNode(selectedNode)">
               Start {{ selectedNode.type === 'challenge' ? 'Challenge' : selectedNode.type === 'quiz' ? 'Quiz' : 'Lesson' }}
             </button>
