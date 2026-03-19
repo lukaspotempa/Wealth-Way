@@ -72,7 +72,7 @@ export const useJourneyStore = defineStore('journey', () => {
         type: 'lesson',
         status: 'locked',
         position: { x: 4, y: 0 },
-        route: '/journey',
+        route: '/lesson/3',
       },
       {
         id: 'checkpoint-2',

@@ -2,10 +2,14 @@
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useJourneyStore } from '@/stores/journey'
-import { lesson1Slides, lesson2Slides, quiz1Slides, calculateChildrenSavings } from '@/services/lessonData'
+import { lesson1Slides, lesson2Slides, lesson3Slides, quiz1Slides, calculateChildrenSavings } from '@/services/lessonData'
 import NetWorthChart from '@/components/lessons/NetWorthChart.vue'
 import InflationChart from '@/components/lessons/InflationChart.vue'
 import SamRealValueChart from '@/components/lessons/SamRealValueChart.vue'
+import MarketMissedDaysChart from '@/components/lessons/MarketMissedDaysChart.vue'
+import CompoundGrowthChart from '@/components/lessons/CompoundGrowthChart.vue'
+import StockVsEtfChart from '@/components/lessons/StockVsEtfChart.vue'
+import FeeDragChart from '@/components/lessons/FeeDragChart.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -27,8 +31,21 @@ const slides = computed<GenericSlide[]>(() => {
   } else {
     if (id.value === '1') return lesson1Slides
     if (id.value === '2') return lesson2Slides
+    if (id.value === '3') return lesson3Slides
   }
   return []
+})
+
+// Human-readable lesson titles shown in the header
+const lessonTitle = computed(() => {
+  if (isQuiz.value) {
+    if (id.value === '1') return 'Inflation and Value Loss'
+    return ''
+  }
+  if (id.value === '1') return 'Introduction'
+  if (id.value === '2') return 'Time in Market'
+  if (id.value === '3') return 'ETFs & Diversification'
+  return ''
 })
 
 const savingsData = calculateChildrenSavings()
@@ -95,7 +112,7 @@ const currentSlideData = computed(() => slides.value[currentSlide.value])
       <!-- Lesson title -->
       <div class="lesson-title-section">
         <span class="lesson-badge">{{ isQuiz ? 'Quiz' : 'Lesson' }} {{ id }}</span>
-        <h1>{{ isQuiz ? '' : 'Introduction' }}</h1>
+        <h1>{{ lessonTitle }}</h1>
       </div>
 
       <!-- Slide content -->
@@ -207,6 +224,75 @@ const currentSlideData = computed(() => slides.value[currentSlide.value])
             <p class="slide-text">{{ currentSlideData.content }}</p>
             <div class="chart-section">
               <InflationChart />
+            </div>
+          </template>
+
+          <!-- Analogy Intro (Oak Tree / Fruit Basket) -->
+          <template v-else-if="currentSlideData?.type === 'analogy-intro'">
+            <div class="slide-card slide-card--analogy">
+              <div class="analogy-icon">{{ currentSlideData.icon }}</div>
+              <h2>{{ currentSlideData.title }}</h2>
+              <div class="analogy-text">
+                <p
+                  v-for="(para, i) in currentSlideData.content.split('\n\n')"
+                  :key="i"
+                  class="analogy-para"
+                >{{ para }}</p>
+              </div>
+            </div>
+          </template>
+
+          <!-- Key Insights (icon + heading + text list) -->
+          <template v-else-if="currentSlideData?.type === 'key-insight'">
+            <h2 class="slide-heading">{{ currentSlideData.title }}</h2>
+            <div class="key-insights-list">
+              <div
+                v-for="(insight, i) in currentSlideData.insights"
+                :key="i"
+                class="key-insight-card"
+              >
+                <div class="ki-icon">{{ insight.icon }}</div>
+                <div class="ki-body">
+                  <h3 class="ki-heading">{{ insight.heading }}</h3>
+                  <p class="ki-text">{{ insight.text }}</p>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <!-- Missed Best Days Chart (Lesson 2) -->
+          <template v-else-if="currentSlideData?.type === 'chart-missed-days'">
+            <h2 class="slide-heading">{{ currentSlideData.title }}</h2>
+            <p class="slide-text">{{ currentSlideData.content }}</p>
+            <div class="chart-section">
+              <MarketMissedDaysChart />
+            </div>
+          </template>
+
+          <!-- Compound Growth Chart (Lesson 2) -->
+          <template v-else-if="currentSlideData?.type === 'chart-compound-growth'">
+            <h2 class="slide-heading">{{ currentSlideData.title }}</h2>
+            <p class="slide-text">{{ currentSlideData.content }}</p>
+            <div class="chart-section">
+              <CompoundGrowthChart />
+            </div>
+          </template>
+
+          <!-- Single Stock vs ETF Chart (Lesson 3) -->
+          <template v-else-if="currentSlideData?.type === 'chart-stock-vs-etf'">
+            <h2 class="slide-heading">{{ currentSlideData.title }}</h2>
+            <p class="slide-text">{{ currentSlideData.content }}</p>
+            <div class="chart-section">
+              <StockVsEtfChart />
+            </div>
+          </template>
+
+          <!-- Fee Drag Chart (Lesson 3) -->
+          <template v-else-if="currentSlideData?.type === 'chart-fee-drag'">
+            <h2 class="slide-heading">{{ currentSlideData.title }}</h2>
+            <p class="slide-text">{{ currentSlideData.content }}</p>
+            <div class="chart-section">
+              <FeeDragChart />
             </div>
           </template>
 
@@ -703,5 +789,73 @@ html.dark .strategy-badge {
 .slide-fade-leave-to {
   opacity: 0;
   transform: translateX(-20px);
+}
+
+/* ── Analogy intro slide ──────────────────────────────────────────────────── */
+.slide-card--analogy {
+  text-align: left;
+}
+
+.analogy-icon {
+  font-size: 4.5rem;
+  line-height: 1;
+  margin-bottom: 1.25rem;
+  text-align: center;
+}
+
+.analogy-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin-top: 0.75rem;
+}
+
+.analogy-para {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--color-text-secondary);
+}
+
+/* ── Key insight slide ────────────────────────────────────────────────────── */
+.key-insights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.key-insight-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+}
+
+.ki-icon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 2.5rem;
+  text-align: center;
+}
+
+.ki-body {
+  flex: 1;
+}
+
+.ki-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-heading);
+  margin-bottom: 0.35rem;
+}
+
+.ki-text {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
 }
 </style>

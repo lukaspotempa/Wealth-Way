@@ -129,7 +129,7 @@ const bands = SHARPE_BANDS
 .sharpe-badge {
   position: relative;
   background: var(--sharpe-bg, var(--color-background-mute));
-  border: 2px solid var(--sharpe-color, var(--color-border));
+  border: 2px solid var(--color-primary);
   border-radius: var(--radius-lg);
   padding: 1rem 1.25rem;
   transition:

@@ -55,6 +55,23 @@ function createChart() {
             boxWidth: 10,
             boxHeight: 10,
             font: { size: 12, family: 'Inter' },
+            generateLabels: (chart) => {
+              const defaultLabels = Chart.defaults.plugins.legend.labels.generateLabels(chart)
+              return defaultLabels.map((label) => {
+                const dataset = chart.data.datasets[label.datasetIndex ?? 0] as any
+                const color = Array.isArray(dataset?.borderColor)
+                  ? dataset.borderColor[0]
+                  : (dataset?.borderColor ?? label.fillStyle)
+
+                return {
+                  ...label,
+                  pointStyle: 'circle',
+                  fillStyle: color,
+                  strokeStyle: color,
+                  lineWidth: 0,
+                }
+              })
+            },
           },
         },
         tooltip: {

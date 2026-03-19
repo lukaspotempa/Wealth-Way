@@ -18,7 +18,8 @@ import { runSimulation, AVAILABLE_YEARS } from '@/services/autoBattleEngine'
 import type { AutoBattleAsset, YearlyPortfolioSnapshot, AutoBattleResult } from '@/types'
 import BattleChart from '@/components/autobattle/BattleChart.vue'
 import SharpeRatioBadge from '@/components/autobattle/SharpeRatioBadge.vue'
-import { Trophy, TrendingDown } from 'lucide-vue-next'
+import { Trophy, TrendingDown, User } from 'lucide-vue-next'
+import { Users } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
@@ -705,15 +706,14 @@ const resultInsights = computed(() => {
         <h2 class="mode-title">Choose Your Battle</h2>
         <div class="mode-cards">
           <button class="mode-card" @click="startSolo">
-            <div class="mode-card-icon">&#128100;</div>
+            <div class="mode-card-icon"><User :size="42"/></div>
             <h3>Solo</h3>
             <p>Battle historical markets alone. Test your portfolio against S&amp;P 500 and MSCI World.</p>
           </button>
-          <button class="mode-card mode-card--multiplayer" @click="startMultiplayer">
-            <div class="mode-card-icon">&#128101;</div>
+          <button class="mode-card" @click="startMultiplayer">
+            <div class="mode-card-icon"><Users :size="42"/></div>
             <h3>Multiplayer</h3>
             <p>Challenge up to 10 friends! Create a lobby or join with a code. Compete in real-time.</p>
-            <span class="mode-card-badge">New!</span>
           </button>
         </div>
       </div>
@@ -1893,7 +1893,7 @@ const resultInsights = computed(() => {
 
 .sharpe-explanation {
   background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 2px solid var(--color-primary);
   border-radius: var(--radius-lg);
   padding: 1.25rem;
 }
@@ -2202,7 +2202,7 @@ html.dark .lesson-callout {
   text-align: left;
   transition: all 0.2s;
 }
-.mode-card:hover { border-color: var(--color-primary, #FFCB00); transform: translateY(-2px); }
+.mode-card:hover { border-color: var(--color-primary, #FFCB00); }
 .mode-card--multiplayer { border-color: var(--color-secondary, #004A5A); }
 .mode-card--multiplayer:hover { background: #f0f9ff; }
 .mode-card-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
