@@ -162,37 +162,6 @@ export const lesson1Slides = [
     content: 'This is how much purchasing power Sam lost by keeping money in the piggy bank instead of investing it.',
   },
   {
-    id: 6.5,
-    type: 'quiz-multi' as const,
-    title: 'Knowledge Check',
-    questions: [
-      {
-        question: 'What happens to uninvested cash over time if there is inflation?',
-        options: [
-          { text: 'It gains value safely', feedback: 'No, inflation means prices go up, so your cash buys less.' },
-          { text: 'It loses purchasing power', feedback: 'Correct! Inflation eats away at the real value of your money.', isCorrect: true },
-          { text: 'It stays exactly the same', feedback: 'The nominal amount stays the same, but its real value decreases.' }
-        ]
-      },
-      {
-        question: 'How does the stock market generally behave over the long term?',
-        options: [
-          { text: 'It only goes up', feedback: 'There are definitely down years (like we saw in 2015 and 2018)!' },
-          { text: 'It goes down due to inflation', feedback: 'No, companies usually grow their earnings to beat inflation.' },
-          { text: 'It has ups and downs but trends upward', feedback: 'Correct! Volatility is normal, but the long-term trend is growth.', isCorrect: true }
-        ]
-      },
-      {
-        question: 'Does investing small amounts (e.g., $15/month) make a difference?',
-        options: [
-          { text: 'Yes, because of compound growth over time', feedback: 'Exactly! Starting early and staying consistent builds wealth.', isCorrect: true },
-          { text: 'No, you need thousands to start', feedback: 'Even small amounts benefit from compound returns over the years.' },
-          { text: 'Only if there is no inflation', feedback: 'Investing is actually one of the main ways to BEAT inflation.' }
-        ]
-      }
-    ]
-  },
-  {
     id: 7,
     type: 'summary' as const,
     title: 'What Did We Learn?',
@@ -204,4 +173,49 @@ export const lesson1Slides = [
       'Investing is one of the best ways to protect and grow your savings',
     ],
   },
+]
+
+export const quiz1Slides = [
+  {
+    id: 1,
+    type: 'question' as const,
+    title: 'Knowledge Check 1/3',
+    question: 'What happens to uninvested cash over time if there is inflation?',
+    options: [
+      { text: 'It gains value safely', feedback: 'No, inflation means prices go up, so your cash buys less.' },
+      { text: 'It loses purchasing power', feedback: 'Correct! Inflation eats away at the real value of your money.', isCorrect: true },
+      { text: 'It stays exactly the same', feedback: 'The nominal amount stays the same, but its real value decreases.' }
+    ]
+  },
+  {
+    id: 2,
+    type: 'question' as const,
+    title: 'Knowledge Check 2/3',
+    question: 'How does the stock market generally behave over the long term?',
+    options: [
+      { text: 'It only goes up', feedback: 'There are definitely down years (like we saw in 2015 and 2018)!' },
+      { text: 'It goes down due to inflation', feedback: 'No, companies usually grow their earnings to beat inflation.' },
+      { text: 'It has ups and downs but trends upward', feedback: 'Correct! Volatility is normal, but the long-term trend is growth.', isCorrect: true }
+    ]
+  },
+  {
+    id: 3,
+    type: 'question' as const,
+    title: 'Knowledge Check 3/3',
+    question: 'Does investing small amounts (e.g., $15/month) make a difference?',
+    options: [
+      { text: 'Yes, because of compound growth over time', feedback: 'Exactly! Starting early and staying consistent builds wealth.', isCorrect: true },
+      { text: 'No, you need thousands to start', feedback: 'Even small amounts benefit from compound returns over the years.' },
+      { text: 'Only if there is no inflation', feedback: 'Investing is actually one of the main ways to BEAT inflation.' }
+    ]
+  },
+  {
+    id: 4,
+    type: 'summary' as const,
+    title: 'Quiz Complete',
+    points: [
+      'You mastered the basics of inflation and investing',
+      'You are ready to learn about the Stock Market!'
+    ]
+  }
 ]

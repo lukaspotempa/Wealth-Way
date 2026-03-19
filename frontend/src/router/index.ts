@@ -30,6 +30,12 @@ const router = createRouter({
       meta: { requiresOnboarding: true },
     },
     {
+      path: '/quiz/:id',
+      name: 'quiz',
+      component: () => import('@/views/LessonView.vue'),
+      meta: { requiresOnboarding: true },
+    },
+    {
       path: '/challenge',
       name: 'challenge',
       component: () => import('@/views/ChallengeView.vue'),

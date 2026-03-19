@@ -31,7 +31,7 @@ export const useJourneyStore = defineStore('journey', () => {
     const allNodes: JourneyNode[] = [
       {
         id: 'lesson-1',
-        title: 'What is Money Worth?',
+        title: 'Introduction',
         description: 'Learn about inflation and how money changes value over time',
         type: 'lesson',
         status: 'available',
@@ -40,12 +40,12 @@ export const useJourneyStore = defineStore('journey', () => {
       },
       {
         id: 'quiz-1',
-        title: 'Money Basics Quiz',
-        description: 'Test your knowledge about inflation and saving',
+        title: 'Inflation and value loss',
+        description: 'Test your knowledge about inflation and value loss over time',
         type: 'quiz',
         status: 'locked',
         position: { x: 1, y: 1 },
-        route: '/lesson/1',
+        route: '/quiz/1',
       },
       {
         id: 'checkpoint-1',

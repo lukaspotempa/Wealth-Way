@@ -19,8 +19,8 @@ const showProgress = computed(() => {
   <header class="app-header">
     <div class="header-inner">
       <router-link to="/" class="logo">
-        <span class="logo-icon">$</span>
-        <span class="logo-text">Finance Journey</span>
+        <img src="/postfinance_logo.png" alt="Logo" class="logo-img" />
+        <span class="logo-text">Wealth Manager Arena: The Investing Game</span>
       </router-link>
 
       <div class="header-right">
@@ -92,17 +92,10 @@ const showProgress = computed(() => {
   color: var(--color-heading);
 }
 
-.logo-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.logo-img {
   width: 36px;
   height: 36px;
-  background: var(--color-primary);
-  color: var(--color-secondary);
-  border-radius: var(--radius-md);
-  font-weight: 800;
-  font-size: 1.25rem;
+  object-fit: contain;
 }
 
 .logo-text {
@@ -176,6 +169,15 @@ const showProgress = computed(() => {
   .autobattle-link-text {
     display: none;
   }
+  .logo-text {
+    display: none;
+  }
+  .header-right {
+    gap: 0.5rem;
+  }
+  .header-inner {
+    padding: 0.5rem 1rem;
+  }
 }
 
 .theme-toggle {
@@ -184,6 +186,9 @@ const showProgress = computed(() => {
   justify-content: center;
   width: 40px;
   height: 40px;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
   background: var(--color-background-mute);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -197,5 +202,9 @@ const showProgress = computed(() => {
 
 .theme-icon {
   font-size: 1.25rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

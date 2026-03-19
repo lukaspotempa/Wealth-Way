@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useJourneyStore } from '@/stores/journey'
-import { lesson1Slides, calculateChildrenSavings } from '@/services/lessonData'
+import { lesson1Slides, quiz1Slides, calculateChildrenSavings } from '@/services/lessonData'
 import NetWorthChart from '@/components/lessons/NetWorthChart.vue'
 import InflationChart from '@/components/lessons/InflationChart.vue'
 import SamRealValueChart from '@/components/lessons/SamRealValueChart.vue'
@@ -11,27 +11,39 @@ const route = useRoute()
 const router = useRouter()
 const journeyStore = useJourneyStore()
 
-const lessonId = computed(() => route.params.id as string)
+const isQuiz = computed(() => route.name === 'quiz')
+const id = computed(() => route.params.id as string)
+
 const currentSlide = ref(0)
-const slides = lesson1Slides
+
+const slides = computed(() => {
+  if (isQuiz.value) {
+    if (id.value === '1') return quiz1Slides
+  } else {
+    if (id.value === '1') return lesson1Slides
+  }
+  return []
+})
+
 const savingsData = calculateChildrenSavings()
 const finalData = savingsData[savingsData.length - 1]
 
-const totalSlides = slides.length
+const totalSlides = computed(() => slides.value.length)
 
 const selectedOptionId = ref<number | null>(null)
 const multiSelectedOptions = ref<Record<number, number>>({})
 
-const progressPercent = computed(() => ((currentSlide.value + 1) / totalSlides) * 100)
+const progressPercent = computed(() => ((currentSlide.value + 1) / totalSlides.value) * 100)
 
 function nextSlide() {
   selectedOptionId.value = null
   multiSelectedOptions.value = {}
-  if (currentSlide.value < totalSlides - 1) {
+  if (currentSlide.value < totalSlides.value - 1) {
     currentSlide.value++
   } else {
-    // Lesson complete
-    journeyStore.completeNode(`lesson-${lessonId.value}`)
+    // Complete the node
+    const nodeId = isQuiz.value ? `quiz-${id.value}` : `lesson-${id.value}`
+    journeyStore.completeNode(nodeId)
     router.push('/journey')
   }
 }
@@ -55,7 +67,7 @@ function selectMultiOption(qIndex: number, oIndex: number) {
   }
 }
 
-const currentSlideData = computed(() => slides[currentSlide.value])
+const currentSlideData = computed(() => slides.value[currentSlide.value])
 </script>
 
 <template>
@@ -76,8 +88,8 @@ const currentSlideData = computed(() => slides[currentSlide.value])
 
       <!-- Lesson title -->
       <div class="lesson-title-section">
-        <span class="lesson-badge">Lesson {{ lessonId }}</span>
-        <h1>What is Money Actually Worth?</h1>
+        <span class="lesson-badge">{{ isQuiz ? 'Quiz' : 'Lesson' }} {{ id }}</span>
+        <h1>{{ isQuiz ? '' : 'Introduction' }}</h1>
       </div>
 
       <!-- Slide content -->
@@ -246,8 +258,12 @@ const currentSlideData = computed(() => slides[currentSlide.value])
           &#8592; Previous
         </button>
         <div v-else />
-        <button class="btn btn--primary" @click="nextSlide">
-          {{ currentSlide === totalSlides - 1 ? 'Complete Lesson &#10003;' : 'Next &#8594;' }}
+        <button
+          class="btn btn--primary"
+          @click="nextSlide"
+          :disabled="currentSlideData?.type === 'question' && (selectedOptionId === null || !currentSlideData.options?.[selectedOptionId]?.isCorrect)"
+        >
+          {{ currentSlide === totalSlides - 1 ? (isQuiz ? 'Complete Quiz &#10003;' : 'Complete Lesson &#10003;') : 'Next &#8594;' }}
         </button>
       </div>
     </div>
@@ -339,7 +355,7 @@ const currentSlideData = computed(() => slides[currentSlide.value])
 
 /* Slide content */
 .slide-content {
-  min-height: 400px;
+  min-height: auto;
 }
 
 .slide-heading {
@@ -645,10 +661,16 @@ html.dark .strategy-badge {
   color: var(--color-secondary);
 }
 
-.btn--primary:hover {
+.btn--primary:hover:not(:disabled) {
   background: var(--color-primary-hover);
-  transform: translateY(-1px);
   box-shadow: var(--shadow-md);
+}
+
+.btn--primary:disabled {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .btn--ghost {
