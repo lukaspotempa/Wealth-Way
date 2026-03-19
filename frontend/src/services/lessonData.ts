@@ -88,21 +88,18 @@ export const lesson1Slides = [
     children: [
       {
         name: 'Alex',
-        emoji: '🛹',
         decision: 'Buys the skateboard right away!',
         detail: 'Spends all $30 immediately. No savings, but instant fun.',
         strategy: 'Spend Now',
       },
       {
         name: 'Sam',
-        emoji: '🐷',
         decision: 'Saves $15 in a piggy bank',
         detail: 'Puts $15 aside each month and spends $15. Buys the skateboard next month with savings.',
         strategy: 'Save in Piggy Bank',
       },
       {
         name: 'Jordan',
-        emoji: '📈',
         decision: 'Invests $15 each month',
         detail: 'Puts $15 into an investment fund and spends $15. Also buys the skateboard next month, but keeps investing.',
         strategy: 'Invest',
@@ -117,21 +114,18 @@ export const lesson1Slides = [
     results: [
       {
         name: 'Alex',
-        emoji: '🛹',
         outcome: 'Has no savings at all',
         detail: 'Alex enjoyed spending, but has $0 saved up.',
         amount: '$0',
       },
       {
         name: 'Sam',
-        emoji: '🐷',
         outcome: 'Has savings, but inflation ate some away',
         detail: 'Sam saved diligently, but the money in the piggy bank lost real value over time.',
         amount: '', // Calculated dynamically
       },
       {
         name: 'Jordan',
-        emoji: '📈',
         outcome: 'Investments grew with the market!',
         detail: 'Jordan\'s monthly $15 investments rode the market ups and downs, building real wealth.',
         amount: '', // Calculated dynamically
@@ -145,13 +139,61 @@ export const lesson1Slides = [
     content: 'See how Sam\'s piggy bank compares to Jordan\'s investment portfolio over 6 years.',
   },
   {
+    id: 4.5,
+    type: 'question' as const,
+    title: 'What happened to Sam\'s Money?',
+    question: 'With an assumed inflation rate of 2% per year, what do you think happened to the real value (purchasing power) of Sam\'s piggy bank savings over those 6 years?',
+    options: [
+      { text: 'It increased', feedback: 'Not quite. Since Sam didn\'t invest, the money didn\'t grow to beat inflation.' },
+      { text: 'It stayed the same', feedback: 'It seems like it should! The nominal amount is safe, but prices went up.' },
+      { text: 'It decreased', feedback: 'Correct! Because things became more expensive (inflation), the same amount of money buys less.', isCorrect: true }
+    ],
+  },
+  {
     id: 5,
+    type: 'chart-sam-real-value' as const,
+    title: 'Sam\'s Savings: Nominal vs Real Value',
+    content: 'The "nominal" value is the total cash Sam put in. But due to inflation, the "real value" (purchasing power) of that money declined. Let\'s see the difference.',
+  },
+  {
+    id: 6,
     type: 'chart-inflation' as const,
     title: 'The Hidden Cost: Inflation',
     content: 'This is how much purchasing power Sam lost by keeping money in the piggy bank instead of investing it.',
   },
   {
-    id: 6,
+    id: 6.5,
+    type: 'quiz-multi' as const,
+    title: 'Knowledge Check',
+    questions: [
+      {
+        question: 'What happens to uninvested cash over time if there is inflation?',
+        options: [
+          { text: 'It gains value safely', feedback: 'No, inflation means prices go up, so your cash buys less.' },
+          { text: 'It loses purchasing power', feedback: 'Correct! Inflation eats away at the real value of your money.', isCorrect: true },
+          { text: 'It stays exactly the same', feedback: 'The nominal amount stays the same, but its real value decreases.' }
+        ]
+      },
+      {
+        question: 'How does the stock market generally behave over the long term?',
+        options: [
+          { text: 'It only goes up', feedback: 'There are definitely down years (like we saw in 2015 and 2018)!' },
+          { text: 'It goes down due to inflation', feedback: 'No, companies usually grow their earnings to beat inflation.' },
+          { text: 'It has ups and downs but trends upward', feedback: 'Correct! Volatility is normal, but the long-term trend is growth.', isCorrect: true }
+        ]
+      },
+      {
+        question: 'Does investing small amounts (e.g., $15/month) make a difference?',
+        options: [
+          { text: 'Yes, because of compound growth over time', feedback: 'Exactly! Starting early and staying consistent builds wealth.', isCorrect: true },
+          { text: 'No, you need thousands to start', feedback: 'Even small amounts benefit from compound returns over the years.' },
+          { text: 'Only if there is no inflation', feedback: 'Investing is actually one of the main ways to BEAT inflation.' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 7,
     type: 'summary' as const,
     title: 'What Did We Learn?',
     points: [
@@ -159,7 +201,7 @@ export const lesson1Slides = [
       'Even small monthly investments ($15/month) can grow significantly',
       'The stock market has ups and downs, but historically trends upward',
       'Starting early gives your money more time to grow (compound returns)',
-      'In Switzerland, investing is one of the best ways to protect and grow your savings',
+      'Investing is one of the best ways to protect and grow your savings',
     ],
   },
 ]

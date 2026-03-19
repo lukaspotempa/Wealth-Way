@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { BookOpen, HelpCircle, Flag, Swords, Check, Lock } from 'lucide-vue-next'
 import { useJourneyStore } from '@/stores/journey'
 import { useUserStore } from '@/stores/user'
 import type { JourneyNode } from '@/types'
@@ -18,11 +19,11 @@ onMounted(() => {
   }, 100)
 })
 
-const nodeTypeIcons: Record<string, string> = {
-  lesson: '📖',
-  quiz: '❓',
-  checkpoint: '🏁',
-  challenge: '⚔️',
+const nodeTypeIcons: Record<string, any> = {
+  lesson: BookOpen,
+  quiz: HelpCircle,
+  checkpoint: Flag,
+  challenge: Swords,
 }
 
 const nodeTypeColors: Record<string, string> = {
@@ -50,7 +51,7 @@ const svgNodes = computed(() => {
     const isCompleted = node.status === 'completed'
     const isCurrent = node.status === 'available'
     const color = nodeTypeColors[node.type] || 'var(--color-primary)'
-    const icon = nodeTypeIcons[node.type] || '📖'
+    const icon = nodeTypeIcons[node.type] || BookOpen
 
     return {
       ...node,
@@ -104,7 +105,7 @@ const greeting = computed(() => {
       </div>
     </div>
 
-    <!-- AutoBattle call-to-action banner -->
+    <!-- AutoBattle call-to-action banner 
     <div class="autobattle-banner">
       <div class="autobattle-banner-inner container">
         <div class="autobattle-banner-text">
@@ -119,7 +120,7 @@ const greeting = computed(() => {
           Play AutoBattle &#8594;
         </router-link>
       </div>
-    </div>
+    </div>-->
 
     <div class="journey-map-wrapper">
       <div ref="mapContainer" class="journey-map map-container" :class="{ 'journey-map--loaded': isLoaded }">
@@ -192,20 +193,41 @@ const greeting = computed(() => {
               :stroke="node.isUnlocked ? node.color : 'var(--color-border)'"
               stroke-width="3"
               class="node-circle"
+              :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
             />
 
             <!-- Icon / lock -->
-            <text
-              :x="node.px"
-              :y="node.py + 1"
-              text-anchor="middle"
-              dominant-baseline="middle"
-              font-size="18"
-              class="node-icon"
-              :opacity="node.isUnlocked ? 1 : 0.3"
-            >
-              {{ node.isCompleted ? '✅' : node.isUnlocked ? node.icon : '🔒' }}
-            </text>
+            <component
+              v-if="node.isCompleted"
+              :is="Check"
+              :x="node.px - 12"
+              :y="node.py - 12"
+              :size="24"
+              color="white"
+              class="node-icon-svg"
+              :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
+            />
+            <component
+              v-else-if="node.isUnlocked"
+              :is="node.icon"
+              :x="node.px - 12"
+              :y="node.py - 12"
+              :size="24"
+              color="black"
+              class="node-icon-svg"
+              :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
+            />
+            <component
+              v-else
+              :is="Lock"
+              :x="node.px - 12"
+              :y="node.py - 12"
+              :size="24"
+              color="white"
+              opacity="0.5"
+              class="node-icon-svg"
+              :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
+            />
 
             <!-- Label bubble -->
             <g class="node-label">
@@ -273,12 +295,18 @@ const greeting = computed(() => {
   max-width: 100%;
 }
 
+.node-group.unlocked .node-circle,
+.node-group.unlocked .node-icon-svg {
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
 .node-group.unlocked .node-circle {
-  transition: all 0.2s ease;
   filter: drop-shadow(0 0 6px rgba(255,203,0,0.3));
 }
-.node-group.unlocked:hover .node-circle {
+.node-group.unlocked:hover .node-circle,
+.node-group.unlocked:hover .node-icon-svg {
   transform: scale(1.1);
+}
+.node-group.unlocked:hover .node-circle {
   filter: drop-shadow(0 0 12px rgba(255,203,0,0.6));
 }
 

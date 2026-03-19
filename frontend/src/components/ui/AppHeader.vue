@@ -30,6 +30,7 @@ const showProgress = computed(() => {
           to="/autobattle"
           class="autobattle-link"
           title="Open AutoBattle Portfolio Mode"
+          style="user-select: none;"
         >
           <span class="autobattle-link-icon">&#9876;</span>
           <span class="autobattle-link-text">AutoBattle</span>

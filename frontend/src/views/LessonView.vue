@@ -5,6 +5,7 @@ import { useJourneyStore } from '@/stores/journey'
 import { lesson1Slides, calculateChildrenSavings } from '@/services/lessonData'
 import NetWorthChart from '@/components/lessons/NetWorthChart.vue'
 import InflationChart from '@/components/lessons/InflationChart.vue'
+import SamRealValueChart from '@/components/lessons/SamRealValueChart.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -18,9 +19,14 @@ const finalData = savingsData[savingsData.length - 1]
 
 const totalSlides = slides.length
 
+const selectedOptionId = ref<number | null>(null)
+const multiSelectedOptions = ref<Record<number, number>>({})
+
 const progressPercent = computed(() => ((currentSlide.value + 1) / totalSlides) * 100)
 
 function nextSlide() {
+  selectedOptionId.value = null
+  multiSelectedOptions.value = {}
   if (currentSlide.value < totalSlides - 1) {
     currentSlide.value++
   } else {
@@ -31,8 +37,21 @@ function nextSlide() {
 }
 
 function prevSlide() {
+  selectedOptionId.value = null
+  multiSelectedOptions.value = {}
   if (currentSlide.value > 0) {
     currentSlide.value--
+  }
+}
+
+function selectOption(index: number) {
+  selectedOptionId.value = index
+}
+
+function selectMultiOption(qIndex: number, oIndex: number) {
+  multiSelectedOptions.value = {
+    ...multiSelectedOptions.value,
+    [qIndex]: oIndex
   }
 }
 
@@ -91,7 +110,6 @@ const currentSlideData = computed(() => slides[currentSlide.value])
                 :key="child.name"
                 class="child-card"
               >
-                <div class="child-emoji">{{ child.emoji }}</div>
                 <h3>{{ child.name }}</h3>
                 <span class="strategy-badge">{{ child.strategy }}</span>
                 <p class="child-decision">{{ child.decision }}</p>
@@ -111,7 +129,6 @@ const currentSlideData = computed(() => slides[currentSlide.value])
                 class="result-card"
                 :class="{ 'result-card--winner': i === 2 }"
               >
-                <div class="result-emoji">{{ result.emoji }}</div>
                 <h3>{{ result.name }}</h3>
                 <p class="result-outcome">{{ result.outcome }}</p>
                 <p class="result-detail">{{ result.detail }}</p>
@@ -130,6 +147,39 @@ const currentSlideData = computed(() => slides[currentSlide.value])
             <p class="slide-text">{{ currentSlideData.content }}</p>
             <div class="chart-section">
               <NetWorthChart />
+            </div>
+          </template>
+
+          <!-- Sam Real Value Chart -->
+          <template v-else-if="currentSlideData?.type === 'chart-sam-real-value'">
+            <h2 class="slide-heading">{{ currentSlideData.title }}</h2>
+            <p class="slide-text">{{ currentSlideData.content }}</p>
+            <div class="chart-section">
+              <SamRealValueChart />
+            </div>
+          </template>
+
+          <!-- Interactive Question -->
+          <template v-else-if="currentSlideData?.type === 'question'">
+            <h2 class="slide-heading">{{ currentSlideData.title }}</h2>
+            <p class="slide-text">{{ currentSlideData.question }}</p>
+            <div class="question-options">
+              <button
+                v-for="(option, idx) in currentSlideData.options"
+                :key="idx"
+                class="option-btn"
+                :class="{ 
+                  'selected': selectedOptionId === idx,
+                  'correct': selectedOptionId === idx && option.isCorrect,
+                  'incorrect': selectedOptionId === idx && !option.isCorrect 
+                }"
+                @click="selectOption(idx)"
+              >
+                {{ option.text }}
+              </button>
+            </div>
+            <div v-if="selectedOptionId !== null && currentSlideData?.options" class="question-feedback" :class="{ 'feedback-correct': currentSlideData.options?.[selectedOptionId]?.isCorrect }">
+              <p>{{ currentSlideData.options?.[selectedOptionId]?.feedback }}</p>
             </div>
           </template>
 
@@ -152,6 +202,34 @@ const currentSlideData = computed(() => slides[currentSlide.value])
                   <span>{{ point }}</span>
                 </li>
               </ul>
+            </div>
+          </template>
+
+          <!-- Multi Quiz -->
+          <template v-else-if="currentSlideData?.type === 'quiz-multi'">
+            <h2 class="slide-heading">{{ currentSlideData.title }}</h2>
+            <div class="quiz-questions">
+               <div v-for="(q, qIndex) in currentSlideData.questions" :key="qIndex" class="quiz-q-block" style="margin-bottom: 2rem;">
+                 <p class="slide-text" style="font-weight: bold; margin-bottom: 1rem;">{{ q.question }}</p>
+                 <div class="question-options">
+                   <button
+                     v-for="(option, oIdx) in q.options"
+                     :key="oIdx"
+                     class="option-btn"
+                     :class="{ 
+                       'selected': multiSelectedOptions[qIndex] === oIdx,
+                       'correct': multiSelectedOptions[qIndex] === oIdx && option.isCorrect,
+                       'incorrect': multiSelectedOptions[qIndex] === oIdx && !option.isCorrect 
+                     }"
+                     @click="selectMultiOption(qIndex, oIdx)"
+                   >
+                     {{ option.text }}
+                   </button>
+                 </div>
+                 <div v-if="multiSelectedOptions[qIndex] !== undefined && q.options" class="question-feedback" :class="{ 'feedback-correct': q.options?.[multiSelectedOptions[qIndex]]?.isCorrect }">
+                   <p>{{ q.options?.[multiSelectedOptions[qIndex]]?.feedback }}</p>
+                 </div>
+               </div>
             </div>
           </template>
 
@@ -406,7 +484,6 @@ html.dark .strategy-badge {
 
 .result-card--winner {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(255, 203, 0, 0.15);
 }
 
 .result-emoji {
@@ -454,6 +531,65 @@ html.dark .strategy-badge {
 /* Summary */
 .slide-card--summary {
   text-align: left;
+}
+
+/* Questions */
+.question-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.option-btn {
+  padding: 1rem;
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+}
+
+.option-btn:hover {
+  border-color: var(--color-primary-hover);
+  background: var(--color-background-soft);
+}
+
+.option-btn.selected {
+  border-color: var(--color-primary);
+  background: rgba(255, 203, 0, 0.1);
+  font-weight: 700;
+}
+
+.option-btn.selected.correct {
+  border-color: var(--color-success);
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.option-btn.selected.incorrect {
+  border-color: var(--color-error);
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+}
+
+.question-feedback {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border-left: 4px solid var(--color-primary);
+  color: var(--color-text);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.question-feedback.feedback-correct {
+  border-left-color: var(--color-success);
 }
 
 .summary-list {
