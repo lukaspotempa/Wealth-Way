@@ -117,6 +117,8 @@ export const useJourneyStore = defineStore('journey', () => {
     
     for (let i = 0; i < allNodes.length; i++) {
       const node = allNodes[i]
+      if (!node) continue
+      
       const nodeNumber = i + 1
 
       if (completedNodes.value.has(node.id)) {

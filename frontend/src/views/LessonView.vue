@@ -217,34 +217,6 @@ const currentSlideData = computed(() => slides.value[currentSlide.value])
             </div>
           </template>
 
-          <!-- Multi Quiz -->
-          <template v-else-if="currentSlideData?.type === 'quiz-multi'">
-            <h2 class="slide-heading">{{ currentSlideData.title }}</h2>
-            <div class="quiz-questions">
-               <div v-for="(q, qIndex) in currentSlideData.questions" :key="qIndex" class="quiz-q-block" style="margin-bottom: 2rem;">
-                 <p class="slide-text" style="font-weight: bold; margin-bottom: 1rem;">{{ q.question }}</p>
-                 <div class="question-options">
-                   <button
-                     v-for="(option, oIdx) in q.options"
-                     :key="oIdx"
-                     class="option-btn"
-                     :class="{ 
-                       'selected': multiSelectedOptions[qIndex] === oIdx,
-                       'correct': multiSelectedOptions[qIndex] === oIdx && option.isCorrect,
-                       'incorrect': multiSelectedOptions[qIndex] === oIdx && !option.isCorrect 
-                     }"
-                     @click="selectMultiOption(qIndex, oIdx)"
-                   >
-                     {{ option.text }}
-                   </button>
-                 </div>
-                 <div v-if="multiSelectedOptions[qIndex] !== undefined && q.options" class="question-feedback" :class="{ 'feedback-correct': q.options?.[multiSelectedOptions[qIndex]]?.isCorrect }">
-                   <p>{{ q.options?.[multiSelectedOptions[qIndex]]?.feedback }}</p>
-                 </div>
-               </div>
-            </div>
-          </template>
-
         </div>
       </transition>
 
