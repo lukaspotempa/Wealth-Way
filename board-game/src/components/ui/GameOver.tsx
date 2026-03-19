@@ -84,9 +84,17 @@ export default function GameOver() {
 
         <button
           className="gameover-btn"
-          onClick={() =>
-            initGame(players.length, players.map((p) => p.playerName))
-          }
+          onClick={() => {
+            // Return to setup screen by resetting players; GameSetup will appear
+            initGame(
+              players.length,
+              players.map((p) => p.playerName),
+              players.map((p) => p.riskProfileId),
+              "turbulent-2020s"
+            );
+            // Actually force a clean setup by clearing state
+            useGameStore.setState({ players: [] });
+          }}
         >
           Play Again
         </button>

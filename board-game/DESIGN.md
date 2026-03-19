@@ -87,3 +87,74 @@ Goal achievement modals also include a `realWorldTip` that ties the milestone to
 | Game Over / net worth ranking | A snapshot: 20-year investing journey compressed to 45 minutes |
 
 The game deliberately compresses time. One "round" might represent six months to a year of real financial progress. The goal is to give players the emotional arc of a multi-decade investing journey in a single session — including crashes, windfalls, and compounding milestones — so they walk away with intuitions that take most people decades to develop.
+
+---
+
+## Market Scenarios & Timeline Events
+
+### Why Scenarios?
+
+Random events make the game feel arbitrary. Real investors experience the market as a *story* — a narrative arc with known themes (bull market, rising rates, tech boom) and unpredictable details. Scenarios recreate this structure.
+
+Three historical arcs are available:
+
+| Scenario | Era | Character |
+|---|---|---|
+| The Turbulent 2020s | 2020–2024 | Crash → recovery → AI boom. Tests emotional resilience. |
+| The Great Bull Run | 2010–2019 | Mostly upward, few corrections. Teaches patience through dips. |
+| The Lost Decade | 2000–2010 | Two major crashes. Tests conviction through prolonged adversity. |
+
+Each scenario fires 5–6 `TimelineEvent`s at specific rounds regardless of tile landing. These are the big story beats. Tile-triggered market events still happen but are **dampened to ±50% intensity** when a scenario is active — they become background noise, not the headline.
+
+### MarketFlash: The Graph Moment
+
+When a timeline event fires, the game pauses between turns and shows a full-screen **MarketFlash** modal:
+
+1. **Severity badge** — Minor / Market Shift / MAJOR EVENT (pulsing red for major)
+2. **Headline** — newspaper-style one-liner ("Global lockdowns erupt — markets freefall")
+3. **Multi-line price chart** — one colored line per affected investment, price history from game start, "NOW" dashed line marking the event's impact point
+4. **Impact summary grid** — ticker, percentage change, new price per affected asset
+5. **Learning tip** — the real-world investing lesson this event illustrates
+6. **Continue button** — "Stay calm, stay invested — continue →" (different for positive events)
+
+This is the moment where the abstract becomes visceral. Players see their holdings move on a chart they understand. The MarketFlash fires *after* prices are already applied, so the chart shows the full impact — no hiding from it.
+
+### Timeline Strip
+
+The HUD shows a compact horizontal timeline strip below the goal bar:
+- **Past events**: green filled circles (you survived these)
+- **Upcoming events**: unfilled circles color-coded by severity (green/orange/red) — the round number is visible but the content is `???` until hovered
+- **NOW marker**: white vertical line showing current position in the story
+
+This creates anticipation. Players can see a major red event coming at Round 7 and start preparing — by diversifying, buying the Emergency Fund power-up, or ensuring they have enough cash. That preparation instinct is exactly how real investors should think.
+
+---
+
+## Risk Profiles & Starting Portfolio
+
+The first real decision players make — before a single dice roll — is their **risk profile**:
+
+| Profile | Invested | Cash | Character |
+|---|---|---|---|
+| 🛡️ Conservative | 2×WRLD = $200 | $800 | Safety first; feels almost no early volatility |
+| ⚖️ Balanced | 3×WRLD + 1×TECH = $420 | $580 | Classic textbook allocation |
+| 📈 Growth | 2×WRLD + 2×TECH + 1×GREN = $520 | $480 | Accepts volatility for higher returns |
+| 🎯 Aggressive | 1×WRLD + 3×TECH + 2×GREN = $620 | $380 | High risk; feels every market move |
+
+This teaches **risk profiling** — the first thing any financial advisor asks. In a workshop, players can compare outcomes: the aggressive investor wins more in bull scenarios but gets crushed by the COVID crash if they don't diversify early.
+
+The portfolios are intentionally calibrated so all players start with exactly **$1,000 total net worth** (cash + holdings at initial prices). This is fair and makes early comparisons meaningful.
+
+---
+
+## Portfolio Performance Chart
+
+Players can open a **portfolio performance chart** at any time via the 📊 button in the scoreboard. It shows:
+
+- **Multi-line net worth chart** — one colored line per player, indexed by round
+- **Event markers** — dashed vertical lines at scenario event rounds (red for major, orange for moderate)
+- **Live legend** — each player's current net worth next to their color swatch
+
+This chart answers the most important long-term investing question: *"How has my total wealth changed over time?"* — not just cash, not just today's prices, but the full picture compounded over every round.
+
+Net worth is recorded at the **end of each round** for all players (stored in `player.netWorthHistory`). The chart updates every time it's opened.

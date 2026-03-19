@@ -6,36 +6,78 @@ import type {
   TurnPhase,
   PowerUp,
   LifeGoal,
+  MarketScenario,
+  TimelineEvent,
+  RiskProfileId,
 } from "../types/game";
 import { PLAYER_COLORS } from "../types/game";
 import { INVESTMENTS } from "../data/investments";
 import { MARKET_EVENTS, INCOME_EVENTS, NEGATIVE_EVENTS, SHOP_ITEMS } from "../data/events";
 import { TOTAL_TILES, generateTiles } from "../data/tiles";
 import { LIFE_GOALS } from "../data/goals";
+import { getRiskProfile } from "../data/riskProfiles";
+import { getScenario } from "../data/scenarios";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
-
-function createPlayers(count: number, names: string[]): Player[] {
-  return Array.from({ length: count }, (_, i) => ({
-    id: i,
-    name: names[i] ?? `Player ${i + 1}`,
-    playerName: names[i] ?? `Player ${i + 1}`,
-    color: PLAYER_COLORS[i],
-    money: 1000,
-    tileIndex: 0,
-    holdings: [],
-    isBankrupt: false,
-    powerUps: [],
-    currentGoalIndex: 0,
-    achievedGoals: [],
-  }));
-}
 
 function cloneInvestments(): InvestmentOption[] {
   return INVESTMENTS.map((inv) => ({
     ...inv,
     priceHistory: [...inv.priceHistory],
   }));
+}
+
+/**
+ * Create players with starting portfolios based on chosen risk profiles.
+ * Initial investments are purchased at the original INVESTMENTS prices.
+ */
+function createPlayers(
+  count: number,
+  names: string[],
+  riskProfileIds: RiskProfileId[]
+): Player[] {
+  const baseInvestments = cloneInvestments();
+
+  return Array.from({ length: count }, (_, i): Player => {
+    const profileId = riskProfileIds[i] ?? "balanced";
+    const profile = getRiskProfile(profileId);
+
+    // Build initial holdings and compute cash cost
+    const holdings = profile.initialHoldings
+      .map((h) => {
+        const inv = baseInvestments.find((inv) => inv.id === h.investmentId);
+        if (!inv) return null;
+        return {
+          investmentId: h.investmentId,
+          quantity: h.quantity,
+          averageBuyPrice: inv.currentPrice,
+        };
+      })
+      .filter(Boolean) as Player["holdings"];
+
+    const invested = holdings.reduce((sum, h) => {
+      const inv = baseInvestments.find((inv) => inv.id === h.investmentId);
+      return sum + h.quantity * (inv?.currentPrice ?? 0);
+    }, 0);
+
+    const startingMoney = Math.max(0, 1000 - invested);
+
+    return {
+      id: i,
+      name: names[i] ?? `Player ${i + 1}`,
+      playerName: names[i] ?? `Player ${i + 1}`,
+      color: PLAYER_COLORS[i],
+      money: startingMoney,
+      tileIndex: 0,
+      holdings,
+      isBankrupt: false,
+      powerUps: [],
+      currentGoalIndex: 0,
+      achievedGoals: [],
+      riskProfileId: profileId,
+      netWorthHistory: [1000], // starting net worth = $1,000 always
+    };
+  });
 }
 
 /** Simulate natural market drift each round */
@@ -47,6 +89,21 @@ function tickInvestmentPrices(investments: InvestmentOption[]): void {
     inv.lastChange = ((rounded - inv.currentPrice) / inv.currentPrice) * 100;
     inv.currentPrice = rounded;
     inv.priceHistory.push(rounded);
+  }
+}
+
+/** Apply a timeline event's price changes to the investments array (mutates in place) */
+function applyTimelineEvent(
+  investments: InvestmentOption[],
+  event: TimelineEvent
+): void {
+  for (const inv of investments) {
+    if (event.affectedInvestmentIds.includes(inv.id)) {
+      const oldPrice = inv.currentPrice;
+      inv.currentPrice = Math.round(oldPrice * event.priceMultiplier * 100) / 100;
+      inv.lastChange = ((inv.currentPrice - oldPrice) / oldPrice) * 100;
+      inv.priceHistory.push(inv.currentPrice);
+    }
   }
 }
 
@@ -69,8 +126,8 @@ export function computeNetWorth(player: Player, investments: InvestmentOption[])
 }
 
 /**
- * Check if the player just crossed a goal threshold.
- * Returns a new celebratedGoal object or null.
+ * Check if a player just crossed a goal threshold.
+ * Returns the celebrated goal object or null.
  */
 function checkGoalProgress(
   players: Player[],
@@ -90,6 +147,16 @@ function checkGoalProgress(
   return null;
 }
 
+/** Find the next non-bankrupt player index */
+function findNextActivePlayer(currentIndex: number, players: Player[]): number {
+  const count = players.length;
+  for (let i = 1; i <= count; i++) {
+    const idx = (currentIndex + i) % count;
+    if (!players[idx].isBankrupt) return idx;
+  }
+  return currentIndex;
+}
+
 // ── Store Interface ────────────────────────────────────────────────────────
 
 interface GameState {
@@ -106,17 +173,27 @@ interface GameState {
   // Derived / cached
   tiles: ReturnType<typeof generateTiles>;
 
+  // Scenario & timeline
+  currentScenario: MarketScenario | null;
+  activeTimelineEvent: TimelineEvent | null;
+
   // Goal celebration
   celebratedGoal: { playerId: number; goal: LifeGoal } | null;
 
   // Actions
-  initGame: (playerCount: number, playerNames: string[]) => void;
+  initGame: (
+    playerCount: number,
+    playerNames: string[],
+    riskProfileIds: RiskProfileId[],
+    scenarioId: string
+  ) => void;
   rollDice: () => void;
   finishMovement: () => void;
   resolveEvent: () => void;
   dismissEvent: () => void;
   endTurn: () => void;
   dismissGoalCelebration: () => void;
+  dismissTimelineEvent: () => void;
 
   // Investment actions
   buyInvestment: (playerId: number, investmentId: string, quantity: number) => void;
@@ -147,21 +224,31 @@ export const useGameStore = create<GameState>((set, get) => ({
   activeEvent: null,
   gameLog: [],
   tiles: generateTiles(),
+  currentScenario: null,
+  activeTimelineEvent: null,
   celebratedGoal: null,
 
   // ── Core Actions ───────────────────────────────────────────────────────
 
-  initGame: (playerCount: number, playerNames: string[]) => {
+  initGame: (playerCount, playerNames, riskProfileIds, scenarioId) => {
+    const scenario = getScenario(scenarioId);
+    const names = playerNames.map((n, i) => n.trim() || `Player ${i + 1}`);
+
     set({
-      players: createPlayers(Math.min(playerCount, 4), playerNames),
+      players: createPlayers(Math.min(playerCount, 4), names, riskProfileIds),
       currentPlayerIndex: 0,
       round: 0,
       turnPhase: "waiting",
       diceValue: null,
       investments: cloneInvestments(),
       activeEvent: null,
+      activeTimelineEvent: null,
       celebratedGoal: null,
-      gameLog: ["Game started! Each player begins with $1,000."],
+      currentScenario: scenario,
+      gameLog: [
+        `Game started! Scenario: ${scenario?.name ?? "Free Play"}`,
+        "Each player begins with $1,000 (split between cash and starting portfolio).",
+      ],
     });
   },
 
@@ -169,7 +256,6 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { celebratedGoal, players, investments } = get();
     if (!celebratedGoal) return;
 
-    // Advance the player's goal index and record achievement
     const playerIndex = players.findIndex((p) => p.id === celebratedGoal.playerId);
     if (playerIndex === -1) {
       set({ celebratedGoal: null });
@@ -184,40 +270,35 @@ export const useGameStore = create<GameState>((set, get) => ({
       currentGoalIndex: player.currentGoalIndex + 1,
     };
 
-    // Check if the newly advanced goal index is also already met (unlikely but possible)
+    // Check if the next goal is also already met (edge case)
     const newCelebration = checkGoalProgress(
       updatedPlayers,
       investments,
       celebratedGoal.playerId
     );
 
-    set({
-      players: updatedPlayers,
-      celebratedGoal: newCelebration,
-    });
+    set({ players: updatedPlayers, celebratedGoal: newCelebration });
+  },
+
+  dismissTimelineEvent: () => {
+    set({ activeTimelineEvent: null });
   },
 
   rollDice: () => {
     const value = Math.floor(Math.random() * 6) + 1;
     set({ diceValue: value, turnPhase: "rolling" });
-
-    // After a brief "rolling" phase, switch to moving
-    setTimeout(() => {
-      set({ turnPhase: "moving" });
-    }, 800);
+    setTimeout(() => set({ turnPhase: "moving" }), 800);
   },
 
   finishMovement: () => {
-    const { players, currentPlayerIndex, diceValue, tiles, round } = get();
+    const { players, currentPlayerIndex, diceValue, tiles, round, currentScenario } = get();
     if (diceValue === null) return;
 
     const player = players[currentPlayerIndex];
-    const oldIndex = player.tileIndex;
 
-    // Corner tiles (indices 0, 10, 20, 30) are skipped — they don't count as a step.
-    // Advance step by step, skipping over any corner tile encountered mid-move.
+    // Move step by step, skipping corner tiles (they don't consume dice steps)
     const CORNER_INDICES = new Set([0, 10, 20, 30]);
-    let pos = oldIndex;
+    let pos = player.tileIndex;
     let stepsRemaining = diceValue;
     let passedStart = false;
     const passedCorners: number[] = [];
@@ -225,21 +306,17 @@ export const useGameStore = create<GameState>((set, get) => ({
       pos = (pos + 1) % TOTAL_TILES;
       if (CORNER_INDICES.has(pos)) {
         passedCorners.push(pos);
-        if (pos === 0) passedStart = true; // stepped through START
+        if (pos === 0) passedStart = true;
       } else {
         stepsRemaining--;
       }
     }
     const newIndex = pos;
 
-    // Update player position
     const updatedPlayers = [...players];
-    updatedPlayers[currentPlayerIndex] = {
-      ...player,
-      tileIndex: newIndex,
-    };
+    updatedPlayers[currentPlayerIndex] = { ...player, tileIndex: newIndex };
 
-    // Grant 2% daily interest at turn start
+    // Grant interest
     const hasInterestBoost = player.powerUps.some((p) => p.type === "interest-boost");
     const interestRate = hasInterestBoost ? 0.04 : 0.02;
     const interest = Math.round(player.money * interestRate);
@@ -247,16 +324,10 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     const log: string[] = [];
     log.push(`${player.playerName} rolled a ${diceValue} and moved to tile ${newIndex}.`);
-    log.push(`${player.playerName} earned $${interest} in daily interest.`);
-
-    if (passedStart) {
-      log.push(`${player.playerName} passed START!`);
-    }
-    // Log any other corners passed through (non-START corners are checkpoint markers)
+    log.push(`${player.playerName} earned $${interest} in interest.`);
+    if (passedStart) log.push(`${player.playerName} passed START!`);
     for (const ci of passedCorners) {
-      if (ci !== 0) {
-        log.push(`${player.playerName} passed through a checkpoint (tile ${ci}).`);
-      }
+      if (ci !== 0) log.push(`${player.playerName} passed a checkpoint (tile ${ci}).`);
     }
 
     // Determine tile event
@@ -271,8 +342,12 @@ export const useGameStore = create<GameState>((set, get) => ({
       case "market-event": {
         const event = pickRandom(MARKET_EVENTS, (e) => e.minRound <= round);
         if (event) {
-          activeEvent = { type: "market-event", event };
-          log.push(`Market Event: ${event.title}`);
+          // If a scenario is active, dampen tile-triggered events to ±50% of normal
+          const dampened = currentScenario
+            ? { ...event, priceMultiplier: 1 + (event.priceMultiplier - 1) * 0.5 }
+            : event;
+          activeEvent = { type: "market-event", event: dampened };
+          log.push(`Market Noise: ${event.title}`);
         }
         break;
       }
@@ -285,11 +360,9 @@ export const useGameStore = create<GameState>((set, get) => ({
         break;
       }
       case "negative-event": {
-        // Check for tax-shield power-up
         const shielded = player.powerUps.some((p) => p.type === "tax-shield");
         if (shielded) {
-          log.push(`${player.playerName}'s Insurance Policy blocked a negative event!`);
-          // Remove the used shield
+          log.push(`${player.playerName}'s Emergency Fund blocked a negative event!`);
           updatedPlayers[currentPlayerIndex] = {
             ...updatedPlayers[currentPlayerIndex],
             powerUps: updatedPlayers[currentPlayerIndex].powerUps.filter(
@@ -315,11 +388,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     const currentInvestments = get().investments;
-    const goalCelebration = checkGoalProgress(
-      updatedPlayers,
-      currentInvestments,
-      player.id
-    );
+    const goalCelebration = checkGoalProgress(updatedPlayers, currentInvestments, player.id);
 
     set({
       players: updatedPlayers,
@@ -358,25 +427,21 @@ export const useGameStore = create<GameState>((set, get) => ({
         }
         break;
       }
-      // investment, shop, negative-event are resolved via their own dismiss flows
       default:
         break;
     }
 
-    set({
-      players: updatedPlayers,
-      investments: updatedInvestments,
-    });
+    set({ players: updatedPlayers, investments: updatedInvestments });
   },
 
   dismissEvent: () => {
     set({ activeEvent: null, turnPhase: "waiting" });
-    // Auto end turn after event dismissal
     get().endTurn();
   },
 
   endTurn: () => {
-    const { players, currentPlayerIndex, round } = get();
+    const { players, currentPlayerIndex, round, currentScenario } = get();
+
     // Decrement power-up durations for current player
     const player = players[currentPlayerIndex];
     const updatedPowerUps = player.powerUps
@@ -384,30 +449,41 @@ export const useGameStore = create<GameState>((set, get) => ({
       .filter((p) => p.turnsRemaining > 0);
 
     const updatedPlayers = [...players];
-    updatedPlayers[currentPlayerIndex] = {
-      ...player,
-      powerUps: updatedPowerUps,
-    };
+    updatedPlayers[currentPlayerIndex] = { ...player, powerUps: updatedPowerUps };
 
     const activePlayers = updatedPlayers.filter((p) => !p.isBankrupt);
-    const nextActiveIndex = findNextActivePlayer(
-      currentPlayerIndex,
-      updatedPlayers
-    );
+    const nextActiveIndex = findNextActivePlayer(currentPlayerIndex, updatedPlayers);
 
-    // Check if round completed (back to first player)
+    // Check if a full round completed (player index wraps or only 1 left)
     let newRound = round;
+    let activeTimelineEvent: TimelineEvent | null = null;
+
     if (nextActiveIndex <= currentPlayerIndex || activePlayers.length <= 1) {
       newRound = round + 1;
-      // Tick investment prices each round
+
+      // 1. Tick passive price drift
       const investments = get().investments.map((inv) => ({ ...inv }));
       tickInvestmentPrices(investments);
-      set({ investments });
+
+      // 2. Apply scenario timeline event for this round (if any)
+      const timelineEvent = currentScenario?.events.find((e) => e.round === newRound) ?? null;
+      if (timelineEvent) {
+        applyTimelineEvent(investments, timelineEvent);
+        activeTimelineEvent = timelineEvent;
+        get().addLog(`⚡ BREAKING: ${timelineEvent.title}`);
+      }
+
+      // 3. Record net worth history for all players using post-event prices
+      const playersWithHistory = updatedPlayers.map((p) => ({
+        ...p,
+        netWorthHistory: [...p.netWorthHistory, computeNetWorth(p, investments)],
+      }));
+
+      set({ investments, players: playersWithHistory, activeTimelineEvent });
       get().addLog(`--- Round ${newRound + 1} begins ---`);
     }
 
     set({
-      players: updatedPlayers,
       currentPlayerIndex: nextActiveIndex,
       round: newRound,
       turnPhase: activePlayers.length <= 1 ? "game-over" : "waiting",
@@ -430,9 +506,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (player.money < totalCost) return;
 
     const updatedPlayers = [...players];
-    const existingHolding = player.holdings.find(
-      (h) => h.investmentId === investmentId
-    );
+    const existingHolding = player.holdings.find((h) => h.investmentId === investmentId);
 
     let newHoldings;
     if (existingHolding) {
@@ -458,17 +532,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     };
 
     set({ players: updatedPlayers });
-    get().addLog(
-      `${player.playerName} bought ${quantity}x ${inv.ticker} at $${inv.currentPrice}`
-    );
+    get().addLog(`${player.playerName} bought ${quantity}x ${inv.ticker} at $${inv.currentPrice}`);
 
-    // Check goal progress after buying
     const latestPlayers = get().players;
     const latestInvestments = get().investments;
     const goalCelebration = checkGoalProgress(latestPlayers, latestInvestments, playerId);
-    if (goalCelebration) {
-      set({ celebratedGoal: goalCelebration });
-    }
+    if (goalCelebration) set({ celebratedGoal: goalCelebration });
   },
 
   sellInvestment: (playerId, investmentId, quantity) => {
@@ -502,17 +571,12 @@ export const useGameStore = create<GameState>((set, get) => ({
     };
 
     set({ players: updatedPlayers });
-    get().addLog(
-      `${player.playerName} sold ${quantity}x ${inv.ticker} at $${inv.currentPrice}`
-    );
+    get().addLog(`${player.playerName} sold ${quantity}x ${inv.ticker} at $${inv.currentPrice}`);
 
-    // Check goal progress after selling (selling might increase cash net worth)
     const latestPlayers = get().players;
     const latestInvestments = get().investments;
     const goalCelebration = checkGoalProgress(latestPlayers, latestInvestments, playerId);
-    if (goalCelebration) {
-      set({ celebratedGoal: goalCelebration });
-    }
+    if (goalCelebration) set({ celebratedGoal: goalCelebration });
   },
 
   // ── Shop Actions ───────────────────────────────────────────────────────
@@ -528,10 +592,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const player = players[playerIndex];
     if (player.money < item.cost) return;
 
-    const powerUp: PowerUp = {
-      type: item.powerUpType,
-      turnsRemaining: item.duration,
-    };
+    const powerUp: PowerUp = { type: item.powerUpType, turnsRemaining: item.duration };
 
     const updatedPlayers = [...players];
     updatedPlayers[playerIndex] = {
@@ -556,7 +617,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       ...updatedPlayers[playerIndex],
       money: updatedPlayers[playerIndex].money - cost,
     };
-
     set({ players: updatedPlayers });
   },
 
@@ -570,11 +630,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     if (playerIndex === -1) return;
 
     const updatedPlayers = [...players];
-    updatedPlayers[playerIndex] = {
-      ...updatedPlayers[playerIndex],
-      isBankrupt: true,
-    };
-
+    updatedPlayers[playerIndex] = { ...updatedPlayers[playerIndex], isBankrupt: true };
     set({ players: updatedPlayers });
     get().addLog(`${updatedPlayers[playerIndex].playerName} went bankrupt!`);
   },
@@ -598,17 +654,3 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ gameLog: [...get().gameLog, message] });
   },
 }));
-
-// ── Pure helpers ──────────────────────────────────────────────────────────
-
-function findNextActivePlayer(
-  currentIndex: number,
-  players: Player[]
-): number {
-  const count = players.length;
-  for (let i = 1; i <= count; i++) {
-    const idx = (currentIndex + i) % count;
-    if (!players[idx].isBankrupt) return idx;
-  }
-  return currentIndex;
-}

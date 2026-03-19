@@ -54,6 +54,24 @@ HTML overlays sit on top of the 3D canvas:
 - `src/data/boardConfig.ts` — tile dimensions and layout constants
 - `src/types/game.ts` and `src/types/board.ts` — all domain types
 
+### Scenario & Timeline System
+
+`src/data/scenarios.ts` defines 3 `MarketScenario` objects (Turbulent 2020s, Great Bull Run, Lost Decade), each with an array of `TimelineEvent`s tagged to specific rounds. A "Free Play" option has no timeline events.
+
+When a round increments in `endTurn`, the store checks `currentScenario?.events.find(e => e.round === newRound)`. If found, prices are applied immediately via `applyTimelineEvent()` and `activeTimelineEvent` is set. `MarketFlash` reads this state and renders the full-screen event modal. `dismissTimelineEvent` clears it.
+
+Tile-triggered `market-event` tiles are **dampened** when a scenario is active: `dampedMultiplier = 1 + (event.priceMultiplier - 1) * 0.5`. This makes tile events background noise vs. scenario events as the main story.
+
+### Risk Profiles & Starting Portfolio
+
+`src/data/riskProfiles.ts` defines 4 `RiskProfile` objects. `createPlayers()` applies `profile.initialHoldings` at game start — each holding bought at INVESTMENTS initial prices, with remaining cash from $1,000.
+
+All players always start at $1,000 net worth regardless of profile (by design).
+
+### Net Worth History
+
+Each `Player` has `netWorthHistory: number[]` — one entry per round, appended in `endTurn` after price ticks and timeline event application. This feeds the Portfolio Performance Chart (opened from HUD 📊 button).
+
 ### Goals System
 
 **Net worth** = `player.money + Σ(holding.quantity × investment.currentPrice)`. Exported as `computeNetWorth(player, investments)` from `gameStore.ts`.

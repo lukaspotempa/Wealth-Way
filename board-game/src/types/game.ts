@@ -2,6 +2,52 @@
 export const PLAYER_COLORS = ["#E53935", "#1E88E5", "#43A047", "#FDD835"] as const;
 export type PlayerColor = (typeof PLAYER_COLORS)[number];
 
+// ── Risk Profiles ──────────────────────────────────────────────────────────
+
+export type RiskProfileId = "conservative" | "balanced" | "growth" | "aggressive";
+
+export interface RiskProfile {
+  id: RiskProfileId;
+  name: string;
+  emoji: string;
+  tagline: string;
+  description: string;
+  /** Shares to purchase at game start using initial investment prices */
+  initialHoldings: { investmentId: string; quantity: number }[];
+}
+
+// ── Market Scenarios & Timeline ────────────────────────────────────────────
+
+/** A scheduled market event that fires automatically at a specific round */
+export interface TimelineEvent {
+  id: string;
+  /** Round at which this event fires (at the start of that round) */
+  round: number;
+  title: string;
+  /** Short newspaper-style headline */
+  headline: string;
+  description: string;
+  affectedInvestmentIds: string[];
+  /** Multiplier applied to all affected investments */
+  priceMultiplier: number;
+  learningTip: string;
+  severity: "minor" | "moderate" | "major";
+}
+
+/** A full market scenario — a historical arc with scripted timeline events */
+export interface MarketScenario {
+  id: string;
+  name: string;
+  emoji: string;
+  /** Display era, e.g. "2020 – 2024" */
+  era: string;
+  tagline: string;
+  description: string;
+  events: TimelineEvent[];
+  /** Overall market mood — affects how intense tile-triggered micro-events are */
+  baseSentiment: "bearish" | "neutral" | "bullish";
+}
+
 /** A life goal milestone that players work toward */
 export interface LifeGoal {
   id: string;
@@ -43,6 +89,10 @@ export interface Player {
   achievedGoals: string[];
   /** User-entered display name (defaults to "Player N") */
   playerName: string;
+  /** Risk profile chosen at game start */
+  riskProfileId: RiskProfileId;
+  /** Net worth snapshot at the end of each round (index = round number) */
+  netWorthHistory: number[];
 }
 
 /** Shop power-up types */

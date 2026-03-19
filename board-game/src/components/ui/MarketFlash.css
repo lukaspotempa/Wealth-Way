@@ -1,0 +1,212 @@
+/* ── Flash Overlay ───────────────────────────────────────────────────── */
+.flash-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 150;
+  padding: 16px;
+  overflow-y: auto;
+  animation: flashFadeIn 0.4s ease;
+}
+
+@keyframes flashFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Card ────────────────────────────────────────────────────────────── */
+.flash-card {
+  background: #0d0d1a;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 32px 36px;
+  max-width: 620px;
+  width: 100%;
+  box-shadow: 0 32px 100px rgba(0, 0, 0, 0.8);
+  animation: flashSlideUp 0.4s ease;
+}
+
+@keyframes flashSlideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ── Severity Banner ─────────────────────────────────────────────────── */
+.flash-severity {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+
+.flash-severity.severity-minor {
+  background: rgba(76, 175, 80, 0.2);
+  color: #66bb6a;
+  border: 1px solid rgba(76, 175, 80, 0.4);
+}
+
+.flash-severity.severity-moderate {
+  background: rgba(255, 152, 0, 0.2);
+  color: #ffa726;
+  border: 1px solid rgba(255, 152, 0, 0.4);
+}
+
+.flash-severity.severity-major {
+  background: rgba(244, 67, 54, 0.2);
+  color: #ef5350;
+  border: 1px solid rgba(244, 67, 54, 0.4);
+  animation: majorPulse 1s ease infinite;
+}
+
+@keyframes majorPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 67, 54, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(244, 67, 54, 0); }
+}
+
+/* ── Title & Headline ────────────────────────────────────────────────── */
+.flash-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+
+.flash-headline {
+  font-size: 13px;
+  color: #8899aa;
+  font-style: italic;
+  margin: 0 0 20px;
+  padding-left: 12px;
+  border-left: 3px solid rgba(255, 255, 255, 0.15);
+}
+
+/* ── Chart ───────────────────────────────────────────────────────────── */
+.flash-chart-container {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  padding: 12px 12px 8px;
+  margin-bottom: 16px;
+}
+
+.flash-chart-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #556677;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 8px;
+}
+
+.flash-chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── Impact Grid ─────────────────────────────────────────────────────── */
+.flash-impact-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.flash-impact-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.flash-impact-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.flash-impact-ticker {
+  font-weight: 700;
+  color: #ddeeff;
+}
+
+.flash-impact-pct {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.flash-impact-pct.positive { color: #4CAF50; }
+.flash-impact-pct.negative { color: #F44336; }
+
+.flash-impact-price {
+  color: #778899;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Description ─────────────────────────────────────────────────────── */
+.flash-description {
+  font-size: 13px;
+  color: #8899aa;
+  line-height: 1.7;
+  margin: 0 0 16px;
+}
+
+/* ── Learning Tip ────────────────────────────────────────────────────── */
+.flash-tip {
+  display: flex;
+  gap: 12px;
+  background: rgba(255, 215, 0, 0.06);
+  border: 1px solid rgba(255, 215, 0, 0.15);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+
+.flash-tip-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.flash-tip p {
+  font-size: 12px;
+  color: #d4b860;
+  line-height: 1.65;
+  margin: 0;
+}
+
+/* ── Continue Button ─────────────────────────────────────────────────── */
+.flash-btn {
+  width: 100%;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #1e3a5f, #0d2444);
+  border: 1px solid rgba(33, 150, 243, 0.3);
+  color: #7eb8f7;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.2px;
+}
+
+.flash-btn:hover {
+  background: linear-gradient(135deg, #1a4a7a, #0d2f5e);
+  color: #aed4ff;
+  border-color: rgba(33, 150, 243, 0.5);
+}

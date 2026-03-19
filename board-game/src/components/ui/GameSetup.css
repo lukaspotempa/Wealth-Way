@@ -9,6 +9,8 @@
   justify-content: center;
   z-index: 200;
   animation: fadeIn 0.4s ease;
+  padding: 16px;
+  overflow-y: auto;
 }
 
 @keyframes fadeIn {
@@ -20,12 +22,16 @@
   background: linear-gradient(160deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 24px;
-  padding: 44px 52px;
+  padding: 40px 44px;
   text-align: center;
-  max-width: 500px;
-  width: 92vw;
+  max-width: 520px;
+  width: 100%;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
   animation: slideUp 0.4s ease;
+}
+
+.setup-card-wide {
+  max-width: 680px;
 }
 
 @keyframes slideUp {
@@ -33,7 +39,7 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* ── Logo ────────────────────────────────────────────────────────────── */
+/* ── Logo / Title ───────────────────────────────────────────────────── */
 .setup-logo {
   font-size: 52px;
   line-height: 1;
@@ -41,7 +47,6 @@
   filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.4));
 }
 
-/* ── Title / Subtitle ───────────────────────────────────────────────── */
 .setup-title {
   font-size: 28px;
   font-weight: 800;
@@ -57,6 +62,173 @@
   line-height: 1.5;
 }
 
+.setup-step-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 6px;
+}
+
+.setup-step-subtitle {
+  font-size: 13px;
+  color: #7a8899;
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+
+/* ── Back button ────────────────────────────────────────────────────── */
+.setup-back-btn {
+  display: block;
+  margin-bottom: 20px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #aabbcc;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.setup-back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* ── Scenario Cards ─────────────────────────────────────────────────── */
+.setup-scenarios {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.setup-scenario-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+  color: inherit;
+  text-align: left;
+}
+
+.setup-scenario-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.setup-scenario-card.selected {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: #4CAF50;
+  box-shadow: 0 0 0 1px rgba(76, 175, 80, 0.3);
+}
+
+.setup-scenario-emoji {
+  font-size: 28px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.setup-scenario-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.setup-scenario-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.setup-scenario-era {
+  font-size: 11px;
+  color: #4CAF50;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+}
+
+.setup-scenario-tagline {
+  font-size: 12px;
+  color: #8899aa;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.setup-scenario-check {
+  width: 22px;
+  height: 22px;
+  background: #4CAF50;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* ── Scenario Description + Event Pills ─────────────────────────────── */
+.setup-scenario-desc {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px 16px;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.setup-scenario-desc p {
+  font-size: 12px;
+  color: #8899aa;
+  margin: 0 0 12px;
+  line-height: 1.6;
+}
+
+.setup-scenario-events {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.setup-event-pill {
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.setup-event-pill.severity-minor {
+  background: rgba(76, 175, 80, 0.15);
+  color: #66bb6a;
+  border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.setup-event-pill.severity-moderate {
+  background: rgba(255, 152, 0, 0.15);
+  color: #ffa726;
+  border: 1px solid rgba(255, 152, 0, 0.3);
+}
+
+.setup-event-pill.severity-major {
+  background: rgba(244, 67, 54, 0.15);
+  color: #ef5350;
+  border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
 /* ── First Goal Preview ─────────────────────────────────────────────── */
 .setup-first-goal {
   display: flex;
@@ -66,7 +238,7 @@
   border: 1px solid rgba(255, 215, 0, 0.2);
   border-radius: 14px;
   padding: 14px 18px;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   text-align: left;
 }
 
@@ -99,7 +271,7 @@
 
 /* ── Player Count Selector ──────────────────────────────────────────── */
 .setup-option {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .setup-label {
@@ -132,7 +304,6 @@
 
 .setup-player-btn:hover {
   border-color: rgba(255, 255, 255, 0.28);
-  background: rgba(255, 255, 255, 0.05);
   color: #fff;
 }
 
@@ -140,39 +311,104 @@
   border-color: #4CAF50;
   background: rgba(76, 175, 80, 0.18);
   color: #4CAF50;
-  box-shadow: 0 0 12px rgba(76, 175, 80, 0.25);
 }
 
-/* ── Player Name Inputs ─────────────────────────────────────────────── */
-.setup-names {
+/* ── Player Rows (Step 2) ───────────────────────────────────────────── */
+.setup-player-rows {
   display: flex;
   flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.setup-player-row {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.setup-player-row-header {
+  display: flex;
+  align-items: center;
   gap: 10px;
-  margin-bottom: 28px;
+  margin-bottom: 12px;
+}
+
+.setup-player-color-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .setup-name-input {
-  width: 100%;
-  padding: 12px 16px;
+  flex: 1;
+  padding: 10px 14px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
+  border-radius: 8px;
   color: #ffffff;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
   outline: none;
-  transition: border-color 0.15s ease, background 0.15s ease;
-  box-sizing: border-box;
+  transition: border-color 0.15s ease;
 }
 
-.setup-name-input::placeholder {
-  color: #556677;
+.setup-name-input::placeholder { color: #556677; }
+.setup-name-input:focus { border-color: rgba(76, 175, 80, 0.5); }
+
+/* ── Risk Profile Selector ──────────────────────────────────────────── */
+.setup-profile-selector {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
-.setup-name-input:focus {
-  border-color: rgba(76, 175, 80, 0.5);
-  background: rgba(76, 175, 80, 0.06);
+.setup-profile-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: inherit;
 }
+
+.setup-profile-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.setup-profile-btn.active {
+  background: rgba(76, 175, 80, 0.12);
+  border-color: #4CAF50;
+}
+
+.setup-profile-emoji { font-size: 16px; line-height: 1; }
+.setup-profile-name {
+  font-size: 9px;
+  font-weight: 700;
+  color: #aabbcc;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.setup-profile-btn.active .setup-profile-name { color: #4CAF50; }
+
+.setup-profile-desc {
+  font-size: 11px;
+  color: #778899;
+  line-height: 1.5;
+}
+
+.setup-profile-desc strong { color: #aabbcc; }
 
 /* ── Start Button ───────────────────────────────────────────────────── */
 .setup-start-btn {
@@ -195,6 +431,4 @@
   box-shadow: 0 6px 32px rgba(76, 175, 80, 0.65);
 }
 
-.setup-start-btn:active {
-  transform: scale(0.97);
-}
+.setup-start-btn:active { transform: scale(0.97); }
