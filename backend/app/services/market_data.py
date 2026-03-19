@@ -12,7 +12,7 @@ _SERVICES_DIR = os.path.dirname(os.path.abspath(__file__))
 _APP_DIR = os.path.dirname(_SERVICES_DIR)
 _BACKEND_DIR = os.path.dirname(_APP_DIR)
 _PROJECT_DIR = os.path.dirname(_BACKEND_DIR)
-DATA_DIR = os.path.join(_PROJECT_DIR, "frontend", "public")
+DATA_DIR = os.path.join(_PROJECT_DIR, "backend", "app", "data")
 
 # Cache
 _cached_data: Optional[dict] = None
