@@ -18,6 +18,7 @@ import { runSimulation, AVAILABLE_YEARS } from '@/services/autoBattleEngine'
 import type { AutoBattleAsset, YearlyPortfolioSnapshot, AutoBattleResult } from '@/types'
 import BattleChart from '@/components/autobattle/BattleChart.vue'
 import SharpeRatioBadge from '@/components/autobattle/SharpeRatioBadge.vue'
+import { Trophy, TrendingDown } from 'lucide-vue-next'
 
 const router = useRouter()
 const route = useRoute()
@@ -428,25 +429,125 @@ const totalAllocation = computed(() =>
 
 const isValid = computed(() => totalAllocation.value === 100)
 
+// ─── Portfolio Risk: Concentration-Adjusted Volatility Score ────────────────
+// Uses the Herfindahl-Hirschman Index (HHI) to penalise undiversified portfolios.
+//
+// Steps:
+//   1. Each asset is assigned a representative annual volatility (σ) based on
+//      asset class and individual name — figures sourced from long-run empirical data.
+//   2. Weighted average volatility:  σ_w = Σ( w_i × σ_i )   (upper-bound estimate)
+//   3. Concentration index (HHI):    HHI  = Σ( w_i² )
+//      - Perfectly diversified across N assets → HHI = 1/N  (low)
+//      - Single-asset portfolio                → HHI = 1.0   (high)
+//   4. Concentration multiplier:     k = 0.5 + 0.5 × HHI
+//      - Ranges from 0.5 (fully spread) to 1.0 (all-in one asset)
+//      - Reflects that correlated / concentrated positions amplify realised vol
+//   5. Adjusted vol:  σ_adj = σ_w × k
+//   6. Normalise to 0–100 % for display against a reference ceiling of 40 % annual vol.
+//      (A single-name high-vol stock at 100 % allocation reaches ~35 %×1.0 ≈ 35 %,
+//       while a bond-only portfolio gives ~5 %×0.5 ≈ 2.5 %.)
+//
+// Result is clamped to [0, 100] and used for the risk bar width and label.
+
+// Representative annual volatilities (%) by asset key
+const ASSET_VOLATILITIES: Record<string, number> = {
+  // Equity indices — broad diversification internally, ~18 % annual vol
+  SMI_INDEX:       0.18,
+  DAX:             0.20,
+  EUROSTOXX50:     0.19,
+  DJIA_INDEX:      0.17,
+  NIKKEI:          0.22,
+  // Investment-grade bonds — very low vol
+  SWISS_BOND_TRI:        0.04,
+  BLOOMBERG_GLOBAL_AGG:  0.05,
+  // Gold — moderate vol, diversifier
+  GOLD_CHF:        0.15,
+  // CH large-cap stocks
+  NESN:   0.18,
+  NOVN:   0.20,
+  ROG:    0.22,
+  ABBN:   0.25,
+  UBSG:   0.30,
+  ZURN:   0.20,
+  CFR:    0.28,
+  SIKA:   0.27,
+  GIVN:   0.25,
+  LONN:   0.32,
+  LOGN:   0.35,
+  // US large-cap stocks
+  AAPL:   0.28,
+  MSFT:   0.26,
+  NVDA:   0.45,
+  AMZN:   0.35,
+  JPM:    0.26,
+  JNJ:    0.18,
+  KO:     0.16,
+  MCD:    0.18,
+  GS:     0.30,
+  V:      0.22,
+}
+
 const riskScore = computed(() => {
-  const weights = { low: 1, medium: 2, high: 3 }
-  const weighted = assets.value.reduce(
-    (sum, a) => sum + a.allocation * weights[a.risk],
-    0,
-  )
-  return totalAllocation.value > 0 ? weighted / totalAllocation.value : 0
+  const total = totalAllocation.value
+  if (total <= 0) return 0
+
+  // Fractional weights (sum to 1 when fully allocated)
+  const weights = assets.value.map((a) => a.allocation / 100)
+
+  // 1. Weighted average volatility  σ_w = Σ( w_i × σ_i )
+  let sigmaW = 0
+  for (const a of assets.value) {
+    const w = a.allocation / 100
+    const sigma = ASSET_VOLATILITIES[a.key] ?? 0.20   // fallback: 20 %
+    sigmaW += w * sigma
+  }
+
+  // 2. Herfindahl-Hirschman Index  HHI = Σ( w_i² )  (0 < HHI ≤ 1)
+  const hhi = weights.reduce((sum, w) => sum + w * w, 0)
+
+  // 3. Concentration multiplier  k ∈ [0.5, 1.0]
+  const k = 0.5 + 0.5 * hhi
+
+  // 4. Adjusted volatility
+  const sigmaAdj = sigmaW * k
+
+  // 5. Normalise: reference ceiling = 0.40 (40 % annual vol)
+  const RAW_CEILING = 0.40
+  return Math.min(sigmaAdj / RAW_CEILING, 1)   // 0–1, clamped
 })
 
+// Thresholds against the 0–1 normalised riskScore:
+//   < 0.20  → Conservative  (adj vol < ~8 %)
+//   < 0.45  → Balanced      (adj vol < ~18 %)
+//   ≥ 0.45  → Aggressive    (adj vol ≥ ~18 %)
 const riskLabel = computed(() => {
-  if (riskScore.value < 1.5) return 'Conservative'
-  if (riskScore.value < 2.2) return 'Balanced'
+  if (riskScore.value < 0.20) return 'Conservative'
+  if (riskScore.value < 0.45) return 'Balanced'
   return 'Aggressive'
 })
 
 const riskColor = computed(() => {
-  if (riskScore.value < 1.5) return '#10b981'
-  if (riskScore.value < 2.2) return '#f59e0b'
+  if (riskScore.value < 0.20) return '#10b981'
+  if (riskScore.value < 0.45) return '#f59e0b'
   return '#ef4444'
+})
+
+// The actual estimated annual volatility (% string) shown as a numeric hint
+const riskVolatilityPct = computed(() => {
+  const total = totalAllocation.value
+  if (total <= 0) return null
+
+  let sigmaW = 0
+  for (const a of assets.value) {
+    const w = a.allocation / 100
+    const sigma = ASSET_VOLATILITIES[a.key] ?? 0.20
+    sigmaW += w * sigma
+  }
+  const weights = assets.value.map((a) => a.allocation / 100)
+  const hhi = weights.reduce((sum, w) => sum + w * w, 0)
+  const k = 0.5 + 0.5 * hhi
+  const sigmaAdj = sigmaW * k
+  return Math.round(sigmaAdj * 100)   // integer percentage, e.g. 14
 })
 
 const allocationRemaining = computed(() => 100 - totalAllocation.value)
@@ -700,15 +801,23 @@ const resultInsights = computed(() => {
           </div>
 
           <!-- Risk meter -->
-          <div class="risk-meter">
+          <div
+            class="risk-meter"
+            :title="riskVolatilityPct !== null
+              ? `Estimated annual volatility: ~${riskVolatilityPct}%\nHHI concentration-adjusted weighted volatility.\nConservative < 8% · Balanced 8–18% · Aggressive > 18%`
+              : 'Allocate assets to see portfolio risk'"
+          >
             <span class="risk-meter-label">Portfolio Risk</span>
             <div class="risk-bar">
               <div
                 class="risk-fill"
-                :style="{ width: (riskScore / 3) * 100 + '%' }"
+                :style="{ width: riskScore * 100 + '%' }"
               />
             </div>
-            <span class="risk-value" :style="{ color: riskColor }">{{ riskLabel }}</span>
+            <span class="risk-value" :style="{ color: riskColor }">
+              {{ riskLabel }}
+              <span v-if="riskVolatilityPct !== null" class="risk-vol-hint">~{{ riskVolatilityPct }}% vol</span>
+            </span>
           </div>
 
           <!-- Remaining allocation hint -->
@@ -828,7 +937,7 @@ const resultInsights = computed(() => {
               </span>
             </div>
             <div class="live-stat">
-              <span class="live-stat-label">Inflation Cost</span>
+              <span class="live-stat-label">Purchasing Power Target</span>
               <span class="live-stat-value live-stat-value--gray">
                 {{ formatCHF(liveSnapshots[liveSnapshots.length - 1]!.inflationValue) }}
               </span>
@@ -847,7 +956,8 @@ const resultInsights = computed(() => {
           <!-- Outcome header -->
           <div class="result-header">
             <div class="result-emoji">
-              {{ battleResult.beatInflation ? '&#127942;' : '&#128200;' }}
+              <Trophy v-if="battleResult.beatInflation" :size="48" class="text-success" />
+              <TrendingDown v-if="!battleResult.beatInflation" :size="48" class="text-error" />
             </div>
             <div>
               <h2 :class="battleResult.beatInflation ? 'text-success' : 'text-error'">
@@ -933,6 +1043,49 @@ const resultInsights = computed(() => {
                 {{ battleResult.beatMSCI ? 'Beat it!' : 'Below' }}
               </span>
               <span class="stat-sub">{{ formatCHF(battleResult.finalMSCIValue) }}</span>
+            </div>
+          </div>
+
+          <!-- Per-asset performance breakdown -->
+          <div v-if="battleResult.assetPerformances.length" class="asset-breakdown">
+            <h3 class="asset-breakdown-title">Investment Performance Breakdown</h3>
+            <div class="asset-breakdown-list">
+              <div
+                v-for="ap in battleResult.assetPerformances"
+                :key="ap.key"
+                class="asset-breakdown-row"
+              >
+                <!-- Color dot + name -->
+                <div class="ab-identity">
+                  <span class="ab-dot" :style="{ background: ap.color }" />
+                  <div class="ab-name-group">
+                    <span class="ab-name">{{ ap.name }}</span>
+                    <span class="ab-ticker">{{ ap.ticker }} · {{ ap.allocation }}%</span>
+                  </div>
+                </div>
+
+                <!-- Trend icon + return figures -->
+                <div class="ab-returns">
+                  <span
+                    class="ab-trend-icon"
+                    :class="ap.totalReturnDecimal >= 0 ? 'ab-trend--up' : 'ab-trend--down'"
+                  >
+                    {{ ap.totalReturnDecimal >= 0 ? '▲' : '▼' }}
+                  </span>
+                  <span
+                    class="ab-pct"
+                    :class="ap.totalReturnDecimal >= 0 ? 'text-success' : 'text-error'"
+                  >
+                    {{ ap.totalReturnDecimal >= 0 ? '+' : '' }}{{ (ap.totalReturnDecimal * 100).toFixed(1) }}%
+                  </span>
+                  <span
+                    class="ab-chf"
+                    :class="ap.absoluteGainCHF >= 0 ? 'text-success' : 'text-error'"
+                  >
+                    {{ ap.absoluteGainCHF >= 0 ? '+' : '' }}{{ formatCHF(ap.absoluteGainCHF) }}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1374,6 +1527,17 @@ const resultInsights = computed(() => {
   font-size: 0.85rem;
   white-space: nowrap;
   transition: color var(--transition-base);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+}
+
+.risk-vol-hint {
+  font-weight: 400;
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  letter-spacing: 0.01em;
 }
 
 .allocation-hint {
@@ -1717,7 +1881,14 @@ const resultInsights = computed(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.25rem;
-  align-items: start;
+  align-items: stretch;
+}
+
+.result-sharpe-section :deep(.sharpe-badge) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .sharpe-explanation {
@@ -1782,6 +1953,107 @@ const resultInsights = computed(() => {
   font-size: 0.7rem;
   color: var(--color-text-muted);
   margin-top: 0.2rem;
+}
+
+/* ─── Asset breakdown ───────────────────────────────────────────────────── */
+.asset-breakdown {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: 1.5rem 1.75rem;
+}
+
+.asset-breakdown-title {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: var(--color-heading);
+}
+
+.asset-breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.asset-breakdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.asset-breakdown-row:last-child {
+  border-bottom: none;
+}
+
+.ab-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.ab-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ab-name-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ab-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-heading);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ab-ticker {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ab-returns {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+
+.ab-trend-icon {
+  font-size: 0.7rem;
+  line-height: 1;
+}
+
+.ab-trend--up   { color: var(--color-success); }
+.ab-trend--down { color: var(--color-error); }
+
+.ab-pct {
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 5.5ch;
+  text-align: right;
+}
+
+.ab-chf {
+  font-size: 0.8rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  min-width: 7.5ch;
+  text-align: right;
+  color: var(--color-text-secondary);
 }
 
 /* Insights */

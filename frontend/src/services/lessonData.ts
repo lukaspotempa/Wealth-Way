@@ -175,6 +175,96 @@ export const lesson1Slides = [
   },
 ]
 
+export const lesson2Slides = [
+  {
+    id: 1,
+    type: 'story-intro' as const,
+    title: 'Time in Market Beats Timing the Market',
+    content: 'Many beginners try to jump in and out of the market to catch the perfect moment. In practice, the most reliable edge is staying invested for longer and letting compounding do the heavy lifting.',
+  },
+  {
+    id: 2,
+    type: 'comparison' as const,
+    title: 'Two Investors, Two Behaviors',
+    children: [
+      {
+        name: 'Mia',
+        decision: 'Invests every month and stays invested',
+        detail: 'Keeps a steady plan, ignores short-term noise, and gives her portfolio years to grow.',
+        strategy: 'Long-Term Investor',
+      },
+      {
+        name: 'Leo',
+        decision: 'Tries to buy dips and sell peaks',
+        detail: 'Frequently trades based on headlines and often misses strong rebound days.',
+        strategy: 'Market Timer',
+      },
+      {
+        name: 'Result',
+        decision: 'Consistency usually wins',
+        detail: 'Missing just a few of the best days can significantly reduce long-term returns.',
+        strategy: 'Stay Invested',
+      },
+    ],
+  },
+  {
+    id: 3,
+    type: 'question' as const,
+    title: 'Quiz 1/4',
+    question: 'What does “time in market” mainly mean?',
+    options: [
+      { text: 'Trading as often as possible', feedback: 'Not quite. Frequent trading is timing behavior, not time in market.' },
+      { text: 'Staying invested over many years', feedback: 'Correct. Long duration allows compounding and recovery from downturns.', isCorrect: true },
+      { text: 'Buying only after markets crash', feedback: 'That is still market timing and is difficult to do consistently.' },
+    ],
+  },
+  {
+    id: 4,
+    type: 'question' as const,
+    title: 'Quiz 2/4',
+    question: 'Why can market timing hurt long-term performance?',
+    options: [
+      { text: 'Because fees and taxes are always zero', feedback: 'Incorrect. Fees/taxes are often higher with frequent trading.' },
+      { text: 'Because investors may miss the market’s best days', feedback: 'Correct. Missing a small number of strong rebound days can materially lower returns.', isCorrect: true },
+      { text: 'Because markets never recover after drops', feedback: 'Historically, markets have experienced many recoveries over long periods.' },
+    ],
+  },
+  {
+    id: 5,
+    type: 'question' as const,
+    title: 'Quiz 3/4',
+    question: 'Which behavior best matches a long-term investing mindset?',
+    options: [
+      { text: 'Panic-selling after every red day', feedback: 'That usually locks in losses instead of letting the portfolio recover.' },
+      { text: 'Investing regularly and rebalancing occasionally', feedback: 'Correct. Consistency plus periodic rebalancing supports long-term growth.', isCorrect: true },
+      { text: 'Switching strategy every week', feedback: 'Constant strategy changes usually reduce discipline and consistency.' },
+    ],
+  },
+  {
+    id: 6,
+    type: 'question' as const,
+    title: 'Quiz 4/4',
+    question: 'What is the key message of this chapter?',
+    options: [
+      { text: 'Short-term trading is the safest path', feedback: 'No. Short-term trades are harder to execute consistently and increase decision errors.' },
+      { text: 'Duration and discipline matter more than perfect timing', feedback: 'Exactly. Staying invested with a long horizon is the core principle.', isCorrect: true },
+      { text: 'Cash always outperforms diversified portfolios', feedback: 'Cash can protect in the short run, but often loses purchasing power over long periods.' },
+    ],
+  },
+  {
+    id: 7,
+    type: 'summary' as const,
+    title: 'What You Should Remember',
+    points: [
+      'Long investment duration is one of the strongest drivers of growth',
+      'Trying to perfectly time entries and exits is extremely difficult',
+      'Missing a few of the best market days can significantly reduce returns',
+      'A consistent plan beats emotional short-term decisions',
+      'Time in market usually beats timing the market',
+    ],
+  },
+]
+
 export const quiz1Slides = [
   {
     id: 1,

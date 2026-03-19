@@ -41,9 +41,20 @@ export interface YearlyPortfolioSnapshot {
   portfolioReturn: number      // that year's return (decimal)
   sp500Value: number
   msciWorldValue: number
-  inflationValue: number       // purchasing-power-eroded cash line
+  inflationValue: number       // nominal value required to preserve starting purchasing power
   sharpeRatio: number | null   // rolling Sharpe up to this year
   cumulativeReturn: number     // total return from start (decimal)
+}
+
+/** Per-asset performance summary returned with the battle result */
+export interface AssetPerformance {
+  key: string
+  name: string
+  ticker: string
+  color: string
+  allocation: number          // 0–100 weight used
+  totalReturnDecimal: number  // e.g. 0.45 = +45 %
+  absoluteGainCHF: number     // CHF gained/lost on the allocated portion
 }
 
 export interface AutoBattleResult {
@@ -61,6 +72,7 @@ export interface AutoBattleResult {
   beatSP500: boolean
   beatMSCI: boolean
   beatInflation: boolean
+  assetPerformances: AssetPerformance[]   // per-asset breakdown, sorted by return desc
 }
 
 export interface SharpeRatingBand {

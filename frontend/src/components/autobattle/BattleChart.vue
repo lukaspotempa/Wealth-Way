@@ -117,7 +117,7 @@ function buildChartData(
         order: 3,
       },
       {
-        label: 'Inflation (purchasing power lost)',
+        label: 'Required to keep purchasing power',
         data: inflationData,
         borderColor: INFLATION_COLOR,
         backgroundColor: `${INFLATION_COLOR}11`,
@@ -172,7 +172,9 @@ function buildChartOptions(dark: boolean): ChartOptions<'line'> {
           font: { size: 11, family: 'Inter, sans-serif' },
           padding: 16,
           usePointStyle: true,
-          pointStyleWidth: 20,
+          pointStyle: 'circle',
+          boxWidth: 10,
+          boxHeight: 10,
         },
       },
       tooltip: {

@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useJourneyStore } from '@/stores/journey'
-import { lesson1Slides, quiz1Slides, calculateChildrenSavings } from '@/services/lessonData'
+import { lesson1Slides, lesson2Slides, quiz1Slides, calculateChildrenSavings } from '@/services/lessonData'
 import NetWorthChart from '@/components/lessons/NetWorthChart.vue'
 import InflationChart from '@/components/lessons/InflationChart.vue'
 import SamRealValueChart from '@/components/lessons/SamRealValueChart.vue'
@@ -16,11 +16,17 @@ const id = computed(() => route.params.id as string)
 
 const currentSlide = ref(0)
 
-const slides = computed(() => {
+type GenericSlide = {
+  type: string
+  [key: string]: any
+}
+
+const slides = computed<GenericSlide[]>(() => {
   if (isQuiz.value) {
     if (id.value === '1') return quiz1Slides
   } else {
     if (id.value === '1') return lesson1Slides
+    if (id.value === '2') return lesson2Slides
   }
   return []
 })
@@ -181,11 +187,11 @@ const currentSlideData = computed(() => slides.value[currentSlide.value])
                 :key="idx"
                 class="option-btn"
                 :class="{ 
-                  'selected': selectedOptionId === idx,
-                  'correct': selectedOptionId === idx && option.isCorrect,
-                  'incorrect': selectedOptionId === idx && !option.isCorrect 
+                  'selected': selectedOptionId === Number(idx),
+                  'correct': selectedOptionId === Number(idx) && option.isCorrect,
+                  'incorrect': selectedOptionId === Number(idx) && !option.isCorrect 
                 }"
-                @click="selectOption(idx)"
+                @click="selectOption(Number(idx))"
               >
                 {{ option.text }}
               </button>
@@ -214,6 +220,34 @@ const currentSlideData = computed(() => slides.value[currentSlide.value])
                   <span>{{ point }}</span>
                 </li>
               </ul>
+            </div>
+          </template>
+
+          <!-- Multi Quiz -->
+          <template v-else-if="currentSlideData?.type === 'quiz-multi'">
+            <h2 class="slide-heading">{{ currentSlideData.title }}</h2>
+            <div class="quiz-questions">
+               <div v-for="(q, qIndex) in currentSlideData.questions" :key="qIndex" class="quiz-q-block" style="margin-bottom: 2rem;">
+                 <p class="slide-text" style="font-weight: bold; margin-bottom: 1rem;">{{ q.question }}</p>
+                 <div class="question-options">
+                   <button
+                     v-for="(option, oIdx) in q.options"
+                     :key="oIdx"
+                     class="option-btn"
+                     :class="{ 
+                       'selected': multiSelectedOptions[Number(qIndex)] === Number(oIdx),
+                       'correct': multiSelectedOptions[Number(qIndex)] === Number(oIdx) && option.isCorrect,
+                       'incorrect': multiSelectedOptions[Number(qIndex)] === Number(oIdx) && !option.isCorrect 
+                     }"
+                     @click="selectMultiOption(Number(qIndex), Number(oIdx))"
+                   >
+                     {{ option.text }}
+                   </button>
+                 </div>
+                 <div v-if="multiSelectedOptions[Number(qIndex)] !== undefined && q.options" class="question-feedback" :class="{ 'feedback-correct': q.options?.[multiSelectedOptions[Number(qIndex)] ?? -1]?.isCorrect }">
+                   <p>{{ q.options?.[multiSelectedOptions[Number(qIndex)] ?? -1]?.feedback }}</p>
+                 </div>
+               </div>
             </div>
           </template>
 

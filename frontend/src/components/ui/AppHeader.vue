@@ -20,7 +20,7 @@ const showProgress = computed(() => {
     <div class="header-inner">
       <router-link to="/" class="logo">
         <img src="/postfinance_logo.png" alt="Logo" class="logo-img" />
-        <span class="logo-text">Wealth Manager Arena: The Investing Game</span>
+        <span class="logo-text">The Wealthy Way</span>
       </router-link>
 
       <div class="header-right">
