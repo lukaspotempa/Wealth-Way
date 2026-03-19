@@ -148,7 +148,7 @@ const greeting = computed(() => {
             stroke="var(--color-primary)"
             stroke-width="6"
             stroke-linecap="round"
-            opacity="0.3"
+            opacity="0"
           />
 
           <!-- Nodes -->
@@ -213,7 +213,7 @@ const greeting = computed(() => {
               :x="node.px - 12"
               :y="node.py - 12"
               :size="24"
-              color="black"
+              color="var(--color-secondary)"
               class="node-icon-svg"
               :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
             />
