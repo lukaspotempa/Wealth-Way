@@ -32,7 +32,7 @@ const showProgress = computed(() => {
           title="Open AutoBattle Portfolio Mode"
         >
           <span class="autobattle-link-icon">&#9876;</span>
-          <span class="autobattle-link-text">AutoBattle</span>
+          <span class="autobattle-link-text">Portfolio Battle</span>
         </router-link>
 
         <div v-if="showProgress" class="progress-badge">

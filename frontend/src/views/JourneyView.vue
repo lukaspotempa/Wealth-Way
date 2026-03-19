@@ -109,14 +109,14 @@ const greeting = computed(() => {
       <div class="autobattle-banner-inner container">
         <div class="autobattle-banner-text">
           <span class="autobattle-banner-badge">New</span>
-          <strong>AutoBattle Mode</strong>
+          <strong>Portfolio Battle Mode</strong>
           <span class="autobattle-banner-sub">
             Build a real portfolio and battle 24 years of historical market data.
             Learn why Sharpe Ratio beats raw return.
           </span>
         </div>
         <router-link to="/autobattle" class="autobattle-banner-btn">
-          Play AutoBattle &#8594;
+          Play Portfolio Battle &#8594;
         </router-link>
       </div>
     </div>

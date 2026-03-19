@@ -7,8 +7,12 @@
  *
  * Key educational goal: Sharpe Ratio (risk-adjusted return) > raw return.
  */
-import { ref, computed, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, nextTick, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import MultiplayerLobby from '@/components/autobattle/MultiplayerLobby.vue'
+import MultiplayerRace from '@/components/autobattle/MultiplayerRace.vue'
+import type { LobbyInfo } from '@/types/multiplayer'
+import type { MultiplayerConnection } from '@/services/multiplayerService'
 import { useJourneyStore } from '@/stores/journey'
 import { runSimulation, AVAILABLE_YEARS } from '@/services/autoBattleEngine'
 import type { AutoBattleAsset, YearlyPortfolioSnapshot, AutoBattleResult } from '@/types'
@@ -16,12 +20,74 @@ import BattleChart from '@/components/autobattle/BattleChart.vue'
 import SharpeRatioBadge from '@/components/autobattle/SharpeRatioBadge.vue'
 
 const router = useRouter()
+const route = useRoute()
 const journeyStore = useJourneyStore()
 
 // ─── Phase state ─────────────────────────────────────────────────────────────
 
 type Phase = 'configure' | 'battling' | 'results'
 const phase = ref<Phase>('configure')
+
+// ─── App mode ─────────────────────────────────────────────────────────────────
+type AppMode = 'choose' | 'solo' | 'multiplayer'
+const appMode = ref<AppMode>('choose')
+const mpConnection = ref<MultiplayerConnection | null>(null)
+const mpLobbyInfo = ref<LobbyInfo | null>(null)
+const mpPlayerId = ref('')
+const mpRaceActive = ref(false)
+const mpIsConfiguring = ref(false)
+const mpPortfolioSubmitted = ref(false)
+const mpStartYear = ref(0)
+const mpEndYear = ref(0)
+
+// Check for ?join= query param (deep link)
+onMounted(() => {
+  const joinCode = route.query.join as string | undefined
+  if (joinCode) {
+    appMode.value = 'multiplayer'
+  }
+})
+
+function startSolo() {
+  appMode.value = 'solo'
+}
+
+function startMultiplayer() {
+  appMode.value = 'multiplayer'
+}
+
+function handleRaceStarted(conn: MultiplayerConnection, lobby: LobbyInfo, playerId: string, startYear: number, endYear: number) {
+  mpConnection.value = conn
+  mpLobbyInfo.value = lobby
+  mpPlayerId.value = playerId
+  mpStartYear.value = startYear
+  mpEndYear.value = endYear
+  mpRaceActive.value = true
+}
+
+function handleMpConfiguring(conn: MultiplayerConnection, lobby: LobbyInfo, playerId: string) {
+  mpConnection.value = conn
+  mpLobbyInfo.value = lobby
+  mpPlayerId.value = playerId
+  mpIsConfiguring.value = true
+  mpPortfolioSubmitted.value = false
+}
+
+function lockInPortfolio() {
+  if (!mpConnection.value || !isValid.value) return
+  const allocations: Record<string, number> = {}
+  assets.value.forEach((a) => { if (a.allocation > 0) allocations[a.key] = a.allocation })
+  mpConnection.value.submitPortfolio(allocations, selectedDuration.value)
+  mpPortfolioSubmitted.value = true
+}
+
+function handleMpBack() {
+  appMode.value = 'choose'
+  mpRaceActive.value = false
+  mpIsConfiguring.value = false
+  mpPortfolioSubmitted.value = false
+  mpConnection.value = null
+}
 
 // ─── Portfolio definition ────────────────────────────────────────────────────
 
@@ -523,7 +589,7 @@ const resultInsights = computed(() => {
 
       <!-- Header -->
       <div class="challenge-title">
-        <span class="challenge-badge">AutoBattle Mode</span>
+        <span class="challenge-badge">Portfolio Battle Mode</span>
         <h1>Portfolio Arena</h1>
         <p class="challenge-subtitle">
           Build a portfolio with real asset classes. Watch it battle historical markets year by year.
@@ -531,6 +597,27 @@ const resultInsights = computed(() => {
         </p>
       </div>
 
+      <!-- ═══════════════════════════════════════════════════════════════════ -->
+      <!-- MODE SELECTION                                                        -->
+      <!-- ═══════════════════════════════════════════════════════════════════ -->
+      <div v-if="appMode === 'choose'" class="mode-select">
+        <h2 class="mode-title">Choose Your Battle</h2>
+        <div class="mode-cards">
+          <button class="mode-card" @click="startSolo">
+            <div class="mode-card-icon">&#128100;</div>
+            <h3>Solo</h3>
+            <p>Battle historical markets alone. Test your portfolio against S&amp;P 500 and MSCI World.</p>
+          </button>
+          <button class="mode-card mode-card--multiplayer" @click="startMultiplayer">
+            <div class="mode-card-icon">&#128101;</div>
+            <h3>Multiplayer</h3>
+            <p>Challenge up to 10 friends! Create a lobby or join with a code. Compete in real-time.</p>
+            <span class="mode-card-badge">New!</span>
+          </button>
+        </div>
+      </div>
+
+      <template v-else-if="appMode === 'solo'">
       <!-- Error banner -->
       <div v-if="battleError" class="error-banner">
         <span>&#9888; {{ battleError }}</span>
@@ -664,7 +751,7 @@ const resultInsights = computed(() => {
           @click="startBattle"
         >
           <template v-if="isValid">
-            &#9654; Start AutoBattle
+            &#9654; Start Portfolio Battle
           </template>
           <template v-else>
             Allocate {{ allocationRemaining > 0 ? allocationRemaining + '% more' : Math.abs(100 - totalAllocation) + '% over limit' }}
@@ -890,6 +977,107 @@ const resultInsights = computed(() => {
           </div>
 
         </div>
+      </template>
+
+      </template> <!-- end solo -->
+
+      <!-- ═══════════════════════════════════════════════════════════════════ -->
+      <!-- MULTIPLAYER MODE                                                     -->
+      <!-- ═══════════════════════════════════════════════════════════════════ -->
+      <template v-else-if="appMode === 'multiplayer'">
+        <template v-if="!mpRaceActive">
+          <MultiplayerLobby
+            @race-started="handleRaceStarted"
+            @configuring="handleMpConfiguring"
+            @back="handleMpBack"
+          />
+
+          <!-- Portfolio builder shown during CONFIGURING phase -->
+          <template v-if="mpIsConfiguring">
+            <section class="config-section portfolio-builder">
+              <div class="allocation-header">
+                <h2>Build Your Portfolio</h2>
+                <div
+                  class="total-badge"
+                  :class="{
+                    'total-badge--valid': totalAllocation === 100,
+                    'total-badge--over': totalAllocation > 100,
+                  }"
+                >
+                  {{ totalAllocation }}% / 100%
+                </div>
+              </div>
+
+              <div class="category-filter">
+                <button
+                  v-for="cat in ['All', 'Indices', 'Bonds', 'Commodities', 'CH Stocks', 'US Stocks']"
+                  :key="cat"
+                  class="category-btn"
+                  :class="{ 'category-btn--active': categoryFilter === cat }"
+                  @click="categoryFilter = cat"
+                >
+                  {{ cat }}
+                </button>
+              </div>
+
+              <div class="assets-list">
+                <div v-for="asset in filteredAssets" :key="asset.key" class="asset-row">
+                  <div class="asset-info">
+                    <div class="asset-dot" :style="{ background: asset.color }" />
+                    <div>
+                      <span class="asset-name">{{ asset.name }}</span>
+                      <span class="asset-meta">{{ asset.category }}</span>
+                    </div>
+                  </div>
+                  <div class="asset-control">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      step="5"
+                      :value="asset.allocation"
+                      :style="{ accentColor: asset.color }"
+                      @input="updateAllocation(asset.key, parseInt(($event.target as HTMLInputElement).value))"
+                    />
+                    <span class="asset-percent">{{ asset.allocation }}%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div v-if="totalAllocation > 0" class="allocation-bar" role="img">
+                <div
+                  v-for="asset in assets.filter(a => a.allocation > 0)"
+                  :key="asset.key"
+                  class="allocation-segment"
+                  :style="{ width: (asset.allocation / totalAllocation) * 100 + '%', background: asset.color }"
+                />
+              </div>
+            </section>
+
+            <button
+              class="btn btn--primary btn--large"
+              :disabled="!isValid || mpPortfolioSubmitted"
+              @click="lockInPortfolio"
+            >
+              <template v-if="mpPortfolioSubmitted">&#10003; Portfolio Locked In!</template>
+              <template v-else-if="isValid">&#128274; Lock In Portfolio</template>
+              <template v-else>Allocate {{ allocationRemaining > 0 ? allocationRemaining + '% more' : Math.abs(100 - totalAllocation) + '% over limit' }}</template>
+            </button>
+          </template>
+        </template>
+
+        <template v-else>
+          <MultiplayerRace
+            v-if="mpConnection && mpLobbyInfo"
+            :connection="mpConnection"
+            :lobby-info="mpLobbyInfo"
+            :my-player-id="mpPlayerId"
+            :initial-start-year="mpStartYear"
+            :initial-end-year="mpEndYear"
+            @play-again="handleMpBack"
+            @back-to-journey="router.push('/journey')"
+          />
+        </template>
       </template>
 
     </div>
@@ -1728,4 +1916,31 @@ html.dark .lesson-callout {
     grid-template-columns: 1fr;
   }
 }
+
+/* ─── Mode selection ────────────────────────────────────────────────────── */
+.mode-select { padding: 2rem 0; }
+.mode-title { text-align: center; font-size: 1.4rem; font-weight: 700; margin: 0 0 1.5rem; }
+.mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; max-width: 600px; margin: 0 auto; }
+.mode-card {
+  position: relative;
+  background: var(--color-surface, #f8f8f8);
+  border: 2px solid var(--color-border, #e5e7eb);
+  border-radius: 16px;
+  padding: 1.5rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+.mode-card:hover { border-color: var(--color-primary, #FFCB00); transform: translateY(-2px); }
+.mode-card--multiplayer { border-color: var(--color-secondary, #004A5A); }
+.mode-card--multiplayer:hover { background: #f0f9ff; }
+.mode-card-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+.mode-card h3 { margin: 0 0 0.4rem; font-size: 1.2rem; font-weight: 800; }
+.mode-card p { margin: 0; font-size: 0.9rem; color: var(--color-text-secondary, #666); line-height: 1.4; }
+.mode-card-badge {
+  position: absolute; top: 0.75rem; right: 0.75rem;
+  background: var(--color-primary, #FFCB00); color: #000;
+  font-size: 0.7rem; font-weight: 800; padding: 0.15rem 0.4rem; border-radius: 4px;
+}
+@media (max-width: 480px) { .mode-cards { grid-template-columns: 1fr; } }
 </style>
