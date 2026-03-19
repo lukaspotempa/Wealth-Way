@@ -36,6 +36,12 @@ const router = createRouter({
       meta: { requiresOnboarding: true },
     },
     {
+      path: '/game/:id',
+      name: 'game',
+      component: () => import('@/views/InvestmentGameView.vue'),
+      meta: { requiresOnboarding: true },
+    },
+    {
       path: '/challenge',
       name: 'challenge',
       component: () => import('@/views/ChallengeView.vue'),

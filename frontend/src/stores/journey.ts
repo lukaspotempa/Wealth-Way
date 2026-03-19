@@ -48,12 +48,21 @@ export const useJourneyStore = defineStore('journey', () => {
         route: '/quiz/1',
       },
       {
+        id: 'game-1',
+        title: 'Investment Simulator',
+        description: 'Allocate your money across ETF, stocks, and crypto to reach your goal',
+        type: 'challenge',
+        status: 'locked',
+        position: { x: 2, y: 0 },
+        route: '/game/1',
+      },
+      {
         id: 'checkpoint-1',
         title: 'Checkpoint: Basics',
         description: 'You understand the fundamentals of money and inflation',
         type: 'checkpoint',
         status: 'locked',
-        position: { x: 2, y: 0 },
+        position: { x: 3, y: 1 },
         route: '/journey',
       },
       {
@@ -62,7 +71,7 @@ export const useJourneyStore = defineStore('journey', () => {
         description: 'Learn why long-term investing usually beats trying to time short-term market moves',
         type: 'lesson',
         status: 'locked',
-        position: { x: 3, y: 1 },
+        position: { x: 4, y: 0 },
         route: '/lesson/2',
       },
       {
@@ -71,7 +80,7 @@ export const useJourneyStore = defineStore('journey', () => {
         description: 'Learn about ETFs and how to spread risk across investments',
         type: 'lesson',
         status: 'locked',
-        position: { x: 4, y: 0 },
+        position: { x: 5, y: 1 },
         route: '/lesson/3',
       },
       {
@@ -80,7 +89,7 @@ export const useJourneyStore = defineStore('journey', () => {
         description: 'You are ready for more advanced concepts',
         type: 'checkpoint',
         status: 'locked',
-        position: { x: 5, y: 1 },
+        position: { x: 6, y: 0 },
         route: '/journey',
       },
       {
@@ -89,7 +98,7 @@ export const useJourneyStore = defineStore('journey', () => {
         description: 'Explore the Swiss Performance Index and Swiss investing',
         type: 'lesson',
         status: 'locked',
-        position: { x: 6, y: 0 },
+        position: { x: 7, y: 1 },
         route: '/journey',
       },
       {
@@ -98,7 +107,7 @@ export const useJourneyStore = defineStore('journey', () => {
         description: 'Learn how to build and manage your investment portfolio',
         type: 'lesson',
         status: 'locked',
-        position: { x: 7, y: 1 },
+        position: { x: 8, y: 0 },
         route: '/journey',
       },
       {
@@ -107,7 +116,7 @@ export const useJourneyStore = defineStore('journey', () => {
         description: 'Configure your portfolio and battle against the market!',
         type: 'challenge',
         status: 'locked',
-        position: { x: 8, y: 0 },
+        position: { x: 9, y: 1 },
         route: '/challenge',
       },
     ]
