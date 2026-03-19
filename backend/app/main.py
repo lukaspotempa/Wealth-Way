@@ -60,7 +60,7 @@ app = FastAPI(title="Wealth Manager ", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://investmentgame.de"],
+    allow_origins=["https://investmentgame.de", "http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

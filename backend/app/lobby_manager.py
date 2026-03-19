@@ -1,6 +1,7 @@
 """
 In-memory lobby state management for multiplayer AutoBattle.
 """
+from __future__ import annotations
 import asyncio
 import uuid
 import random
