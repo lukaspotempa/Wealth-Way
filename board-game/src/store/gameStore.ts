@@ -5,25 +5,29 @@ import type {
   ActiveEvent,
   TurnPhase,
   PowerUp,
+  LifeGoal,
 } from "../types/game";
 import { PLAYER_COLORS } from "../types/game";
 import { INVESTMENTS } from "../data/investments";
 import { MARKET_EVENTS, INCOME_EVENTS, NEGATIVE_EVENTS, SHOP_ITEMS } from "../data/events";
 import { TOTAL_TILES, generateTiles } from "../data/tiles";
+import { LIFE_GOALS } from "../data/goals";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-function createPlayers(count: number): Player[] {
-  const names = ["Player 1", "Player 2", "Player 3", "Player 4"];
+function createPlayers(count: number, names: string[]): Player[] {
   return Array.from({ length: count }, (_, i) => ({
     id: i,
-    name: names[i],
+    name: names[i] ?? `Player ${i + 1}`,
+    playerName: names[i] ?? `Player ${i + 1}`,
     color: PLAYER_COLORS[i],
     money: 1000,
     tileIndex: 0,
     holdings: [],
     isBankrupt: false,
     powerUps: [],
+    currentGoalIndex: 0,
+    achievedGoals: [],
   }));
 }
 
@@ -53,6 +57,39 @@ function pickRandom<T>(arr: T[], filter?: (item: T) => boolean): T | undefined {
   return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
+/** Compute total net worth for a player */
+export function computeNetWorth(player: Player, investments: InvestmentOption[]): number {
+  return (
+    player.money +
+    player.holdings.reduce((sum, h) => {
+      const inv = investments.find((i) => i.id === h.investmentId);
+      return sum + h.quantity * (inv?.currentPrice ?? h.averageBuyPrice);
+    }, 0)
+  );
+}
+
+/**
+ * Check if the player just crossed a goal threshold.
+ * Returns a new celebratedGoal object or null.
+ */
+function checkGoalProgress(
+  players: Player[],
+  investments: InvestmentOption[],
+  playerId: number
+): { playerId: number; goal: LifeGoal } | null {
+  const player = players.find((p) => p.id === playerId);
+  if (!player) return null;
+  if (player.currentGoalIndex >= LIFE_GOALS.length) return null;
+
+  const currentGoal = LIFE_GOALS[player.currentGoalIndex];
+  const netWorth = computeNetWorth(player, investments);
+
+  if (netWorth >= currentGoal.targetNetWorth) {
+    return { playerId, goal: currentGoal };
+  }
+  return null;
+}
+
 // ── Store Interface ────────────────────────────────────────────────────────
 
 interface GameState {
@@ -69,13 +106,17 @@ interface GameState {
   // Derived / cached
   tiles: ReturnType<typeof generateTiles>;
 
+  // Goal celebration
+  celebratedGoal: { playerId: number; goal: LifeGoal } | null;
+
   // Actions
-  initGame: (playerCount: number) => void;
+  initGame: (playerCount: number, playerNames: string[]) => void;
   rollDice: () => void;
   finishMovement: () => void;
   resolveEvent: () => void;
   dismissEvent: () => void;
   endTurn: () => void;
+  dismissGoalCelebration: () => void;
 
   // Investment actions
   buyInvestment: (playerId: number, investmentId: string, quantity: number) => void;
@@ -106,19 +147,53 @@ export const useGameStore = create<GameState>((set, get) => ({
   activeEvent: null,
   gameLog: [],
   tiles: generateTiles(),
+  celebratedGoal: null,
 
   // ── Core Actions ───────────────────────────────────────────────────────
 
-  initGame: (playerCount: number) => {
+  initGame: (playerCount: number, playerNames: string[]) => {
     set({
-      players: createPlayers(Math.min(playerCount, 4)),
+      players: createPlayers(Math.min(playerCount, 4), playerNames),
       currentPlayerIndex: 0,
       round: 0,
       turnPhase: "waiting",
       diceValue: null,
       investments: cloneInvestments(),
       activeEvent: null,
+      celebratedGoal: null,
       gameLog: ["Game started! Each player begins with $1,000."],
+    });
+  },
+
+  dismissGoalCelebration: () => {
+    const { celebratedGoal, players, investments } = get();
+    if (!celebratedGoal) return;
+
+    // Advance the player's goal index and record achievement
+    const playerIndex = players.findIndex((p) => p.id === celebratedGoal.playerId);
+    if (playerIndex === -1) {
+      set({ celebratedGoal: null });
+      return;
+    }
+
+    const player = players[playerIndex];
+    const updatedPlayers = [...players];
+    updatedPlayers[playerIndex] = {
+      ...player,
+      achievedGoals: [...player.achievedGoals, celebratedGoal.goal.id],
+      currentGoalIndex: player.currentGoalIndex + 1,
+    };
+
+    // Check if the newly advanced goal index is also already met (unlikely but possible)
+    const newCelebration = checkGoalProgress(
+      updatedPlayers,
+      investments,
+      celebratedGoal.playerId
+    );
+
+    set({
+      players: updatedPlayers,
+      celebratedGoal: newCelebration,
     });
   },
 
@@ -171,16 +246,16 @@ export const useGameStore = create<GameState>((set, get) => ({
     updatedPlayers[currentPlayerIndex].money += interest;
 
     const log: string[] = [];
-    log.push(`${player.name} rolled a ${diceValue} and moved to tile ${newIndex}.`);
-    log.push(`${player.name} earned $${interest} in daily interest.`);
+    log.push(`${player.playerName} rolled a ${diceValue} and moved to tile ${newIndex}.`);
+    log.push(`${player.playerName} earned $${interest} in daily interest.`);
 
     if (passedStart) {
-      log.push(`${player.name} passed START!`);
+      log.push(`${player.playerName} passed START!`);
     }
     // Log any other corners passed through (non-START corners are checkpoint markers)
     for (const ci of passedCorners) {
       if (ci !== 0) {
-        log.push(`${player.name} passed through a checkpoint (tile ${ci}).`);
+        log.push(`${player.playerName} passed through a checkpoint (tile ${ci}).`);
       }
     }
 
@@ -213,7 +288,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         // Check for tax-shield power-up
         const shielded = player.powerUps.some((p) => p.type === "tax-shield");
         if (shielded) {
-          log.push(`${player.name}'s Insurance Policy blocked a negative event!`);
+          log.push(`${player.playerName}'s Insurance Policy blocked a negative event!`);
           // Remove the used shield
           updatedPlayers[currentPlayerIndex] = {
             ...updatedPlayers[currentPlayerIndex],
@@ -235,15 +310,23 @@ export const useGameStore = create<GameState>((set, get) => ({
         log.push("You found a shop! Browse available items.");
         break;
       case "start":
-        log.push(`${player.name} landed on a checkpoint tile.`);
+        log.push(`${player.playerName} landed on a checkpoint tile.`);
         break;
     }
+
+    const currentInvestments = get().investments;
+    const goalCelebration = checkGoalProgress(
+      updatedPlayers,
+      currentInvestments,
+      player.id
+    );
 
     set({
       players: updatedPlayers,
       turnPhase: activeEvent ? "event" : "waiting",
       activeEvent,
       gameLog: [...get().gameLog, ...log],
+      ...(goalCelebration ? { celebratedGoal: goalCelebration } : {}),
     });
   },
 
@@ -376,8 +459,16 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     set({ players: updatedPlayers });
     get().addLog(
-      `${player.name} bought ${quantity}x ${inv.ticker} at $${inv.currentPrice}`
+      `${player.playerName} bought ${quantity}x ${inv.ticker} at $${inv.currentPrice}`
     );
+
+    // Check goal progress after buying
+    const latestPlayers = get().players;
+    const latestInvestments = get().investments;
+    const goalCelebration = checkGoalProgress(latestPlayers, latestInvestments, playerId);
+    if (goalCelebration) {
+      set({ celebratedGoal: goalCelebration });
+    }
   },
 
   sellInvestment: (playerId, investmentId, quantity) => {
@@ -412,8 +503,16 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     set({ players: updatedPlayers });
     get().addLog(
-      `${player.name} sold ${quantity}x ${inv.ticker} at $${inv.currentPrice}`
+      `${player.playerName} sold ${quantity}x ${inv.ticker} at $${inv.currentPrice}`
     );
+
+    // Check goal progress after selling (selling might increase cash net worth)
+    const latestPlayers = get().players;
+    const latestInvestments = get().investments;
+    const goalCelebration = checkGoalProgress(latestPlayers, latestInvestments, playerId);
+    if (goalCelebration) {
+      set({ celebratedGoal: goalCelebration });
+    }
   },
 
   // ── Shop Actions ───────────────────────────────────────────────────────
@@ -442,7 +541,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     };
 
     set({ players: updatedPlayers });
-    get().addLog(`${player.name} bought ${item.name} for $${item.cost}`);
+    get().addLog(`${player.playerName} bought ${item.name} for $${item.cost}`);
   },
 
   // ── Negative Event Resolution ──────────────────────────────────────────
@@ -477,7 +576,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     };
 
     set({ players: updatedPlayers });
-    get().addLog(`${updatedPlayers[playerIndex].name} went bankrupt!`);
+    get().addLog(`${updatedPlayers[playerIndex].playerName} went bankrupt!`);
   },
 
   // ── Helpers ────────────────────────────────────────────────────────────

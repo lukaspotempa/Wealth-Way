@@ -29,6 +29,8 @@ export const MARKET_EVENTS: MarketEvent[] = [
     affectedInvestmentIds: ["etf-world", "etf-tech", "etf-green"],
     priceMultiplier: 0.74,   // ~−26%: fast crash but tech recovered faster than world/green
     minRound: 0,
+    learningTip:
+      "During the 2020 crash, investors who stayed the course recovered fully within 6 months. Panic selling locks in losses permanently — time in the market beats timing the market.",
   },
   {
     id: "me-2",
@@ -41,6 +43,8 @@ export const MARKET_EVENTS: MarketEvent[] = [
     affectedInvestmentIds: ["etf-tech", "etf-world"],
     priceMultiplier: 1.22,   // +22%: strong broad rally; milder than full 2020–21 run
     minRound: 0,
+    learningTip:
+      "Investors who held through the 2020 crash and into 2021 saw gains of 80%+. This is why emotional decisions during crashes are so costly — the recovery is often swift and powerful.",
   },
   {
     id: "me-3",
@@ -99,6 +103,8 @@ export const MARKET_EVENTS: MarketEvent[] = [
     affectedInvestmentIds: ["etf-tech"],
     priceMultiplier: 1.18,   // +18%: large but not full-year run compressed into one event
     minRound: 0,
+    learningTip:
+      "Narrative-driven rallies can be real AND overextended at the same time. ETFs let you participate in a tech boom without betting your entire portfolio on a single company winning.",
   },
 
   // ── Bond-level events (round 2+) ─────────────────────────────────────────
@@ -114,6 +120,8 @@ export const MARKET_EVENTS: MarketEvent[] = [
     affectedInvestmentIds: ["bond-gov", "bond-corp"],
     priceMultiplier: 0.84,   // −16%: matches ~avg of gov+corp bond losses in 2022
     minRound: 2,
+    learningTip:
+      "When interest rates rise, existing bond prices fall — they move in opposite directions. Shorter-duration bonds are less sensitive. This is why bond diversification across durations matters.",
   },
   {
     id: "me-9",
@@ -223,6 +231,8 @@ export const MARKET_EVENTS: MarketEvent[] = [
     affectedInvestmentIds: ["stock-alpha"],
     priceMultiplier: 0.12,   // −88%: total near-wipeout of the single stock
     minRound: 4,
+    learningTip:
+      "No single stock position should exceed 5–10% of your portfolio. Fraud, lawsuits, and disruption can wipe a company out overnight. ETFs eliminate single-stock catastrophe risk.",
   },
   {
     id: "me-18",

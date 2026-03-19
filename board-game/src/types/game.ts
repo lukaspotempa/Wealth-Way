@@ -2,6 +2,17 @@
 export const PLAYER_COLORS = ["#E53935", "#1E88E5", "#43A047", "#FDD835"] as const;
 export type PlayerColor = (typeof PLAYER_COLORS)[number];
 
+/** A life goal milestone that players work toward */
+export interface LifeGoal {
+  id: string;
+  name: string;
+  emoji: string;
+  targetNetWorth: number;
+  description: string;          // shown when revealed
+  celebrationMessage: string;   // shown on achievement
+  realWorldTip: string;         // investing lesson tied to this milestone
+}
+
 /** A player's holding of a single investment */
 export interface InvestmentHolding {
   investmentId: string;
@@ -26,6 +37,12 @@ export interface Player {
   isBankrupt: boolean;
   /** Active shop power-ups */
   powerUps: PowerUp[];
+  /** Index into LIFE_GOALS array — which goal the player is currently pursuing */
+  currentGoalIndex: number;
+  /** IDs of goals that have been completed */
+  achievedGoals: string[];
+  /** User-entered display name (defaults to "Player N") */
+  playerName: string;
 }
 
 /** Shop power-up types */
@@ -72,6 +89,8 @@ export interface MarketEvent {
   priceMultiplier: number;
   /** Minimum round for this event to trigger */
   minRound: number;
+  /** Brief educational insight shown in modal */
+  learningTip?: string;
 }
 
 /** Income event data */

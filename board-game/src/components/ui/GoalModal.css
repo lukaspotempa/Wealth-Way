@@ -1,0 +1,194 @@
+/* ── Goal Overlay ────────────────────────────────────────────────────── */
+.goal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.87);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Goal Card ───────────────────────────────────────────────────────── */
+.goal-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  border: 2px solid #ffd700;
+  border-radius: 22px;
+  padding: 40px 44px;
+  max-width: 500px;
+  width: 92%;
+  text-align: center;
+  box-shadow: 0 0 60px rgba(255, 215, 0, 0.3), 0 24px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(28px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ── Big Emoji ───────────────────────────────────────────────────────── */
+.goal-emoji-big {
+  font-size: 72px;
+  line-height: 1;
+  margin-bottom: 8px;
+  display: block;
+  filter: drop-shadow(0 0 24px rgba(255, 215, 0, 0.5));
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes popIn {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ── Labels ──────────────────────────────────────────────────────────── */
+.goal-achieved-label {
+  font-size: 11px;
+  font-weight: 800;
+  color: #ffd700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.goal-name {
+  font-size: 26px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 6px;
+}
+
+.goal-player-name {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  opacity: 0.95;
+}
+
+/* ── Celebration Text ────────────────────────────────────────────────── */
+.goal-celebration {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #c8d8e8;
+  margin-bottom: 20px;
+}
+
+/* ── Learning Tip ────────────────────────────────────────────────────── */
+.goal-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(255, 215, 0, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.goal-tip-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.goal-tip p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #b8ccd8;
+  margin: 0;
+}
+
+/* ── Next Goal Preview ───────────────────────────────────────────────── */
+.goal-next {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.goal-next-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #778899;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 8px;
+}
+
+.goal-next-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.goal-next-emoji {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.goal-next-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 2px;
+}
+
+.goal-next-target {
+  font-size: 12px;
+  color: #ffd700;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.goal-next-desc {
+  font-size: 12px;
+  color: #778899;
+  line-height: 1.4;
+}
+
+/* ── Final / All-Goals Message ──────────────────────────────────────── */
+.goal-final {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffd700;
+  margin-bottom: 24px;
+  padding: 14px;
+  background: rgba(255, 215, 0, 0.1);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 215, 0, 0.25);
+}
+
+/* ── CTA Button ──────────────────────────────────────────────────────── */
+.goal-btn {
+  width: 100%;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f9a825, #e65100);
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 20px rgba(249, 168, 37, 0.45);
+  letter-spacing: 0.2px;
+}
+
+.goal-btn:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 28px rgba(249, 168, 37, 0.6);
+}
+
+.goal-btn:active {
+  transform: scale(0.97);
+}

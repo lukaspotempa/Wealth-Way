@@ -2,50 +2,114 @@
 .setup-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(26, 26, 46, 0.95);
-  backdrop-filter: blur(10px);
+  background: rgba(10, 10, 20, 0.97);
+  backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 200;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .setup-card {
-  background: #1e1e2e;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 48px 56px;
+  background: linear-gradient(160deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  padding: 44px 52px;
   text-align: center;
-  max-width: 480px;
-  width: 90vw;
-  box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5);
+  max-width: 500px;
+  width: 92vw;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  animation: slideUp 0.4s ease;
 }
 
+@keyframes slideUp {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ── Logo ────────────────────────────────────────────────────────────── */
+.setup-logo {
+  font-size: 52px;
+  line-height: 1;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 0 20px rgba(76, 175, 80, 0.4));
+}
+
+/* ── Title / Subtitle ───────────────────────────────────────────────── */
 .setup-title {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 800;
   color: #ffffff;
   margin: 0 0 8px;
+  letter-spacing: -0.5px;
 }
 
 .setup-subtitle {
   font-size: 14px;
-  color: #888;
-  margin: 0 0 32px;
+  color: #7a8899;
+  margin: 0 0 28px;
+  line-height: 1.5;
 }
 
+/* ── First Goal Preview ─────────────────────────────────────────────── */
+.setup-first-goal {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255, 215, 0, 0.07);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 28px;
+  text-align: left;
+}
+
+.setup-goal-emoji {
+  font-size: 32px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.setup-goal-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffd700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 2px;
+}
+
+.setup-goal-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 2px;
+}
+
+.setup-goal-target {
+  font-size: 12px;
+  color: #8899aa;
+}
+
+/* ── Player Count Selector ──────────────────────────────────────────── */
 .setup-option {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .setup-label {
   display: block;
-  font-size: 13px;
-  font-weight: 600;
-  color: #aaa;
+  font-size: 11px;
+  font-weight: 700;
+  color: #778899;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 12px;
+  letter-spacing: 0.8px;
+  margin-bottom: 10px;
 }
 
 .setup-player-btns {
@@ -55,44 +119,80 @@
 }
 
 .setup-player-btn {
-  padding: 10px 24px;
-  border: 2px solid rgba(255, 255, 255, 0.15);
+  padding: 10px 28px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   background: transparent;
-  color: #ccc;
-  font-size: 14px;
-  font-weight: 600;
+  color: #aabbcc;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .setup-player-btn:hover {
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.28);
   background: rgba(255, 255, 255, 0.05);
+  color: #fff;
 }
 
 .setup-player-btn.active {
   border-color: #4CAF50;
-  background: rgba(76, 175, 80, 0.15);
+  background: rgba(76, 175, 80, 0.18);
   color: #4CAF50;
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.25);
 }
 
+/* ── Player Name Inputs ─────────────────────────────────────────────── */
+.setup-names {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.setup-name-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+  box-sizing: border-box;
+}
+
+.setup-name-input::placeholder {
+  color: #556677;
+}
+
+.setup-name-input:focus {
+  border-color: rgba(76, 175, 80, 0.5);
+  background: rgba(76, 175, 80, 0.06);
+}
+
+/* ── Start Button ───────────────────────────────────────────────────── */
 .setup-start-btn {
-  padding: 14px 48px;
+  width: 100%;
+  padding: 15px 48px;
   border: none;
   border-radius: 12px;
   background: linear-gradient(135deg, #4CAF50, #388E3C);
   color: #fff;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 4px 24px rgba(76, 175, 80, 0.4);
+  box-shadow: 0 4px 24px rgba(76, 175, 80, 0.45);
+  letter-spacing: 0.3px;
 }
 
 .setup-start-btn:hover {
-  transform: scale(1.04);
-  box-shadow: 0 6px 32px rgba(76, 175, 80, 0.6);
+  transform: scale(1.03);
+  box-shadow: 0 6px 32px rgba(76, 175, 80, 0.65);
 }
 
 .setup-start-btn:active {

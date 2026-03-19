@@ -14,9 +14,12 @@ const CATEGORY_LABELS: Record<InvestmentCategory, string> = {
   stock: "Stocks",
 };
 
+const QUANTITY_OPTIONS = [1, 5, 10];
+
 /**
  * Investment market panel showing available investments categorized by type.
  * Each player can buy/sell from their own section.
+ * Supports multi-quantity trading and shows unrealized P&L.
  */
 export default function InvestmentPanel({ sellOnly = false }: InvestmentPanelProps) {
   const players = useGameStore((s) => s.players);
@@ -28,6 +31,7 @@ export default function InvestmentPanel({ sellOnly = false }: InvestmentPanelPro
   const [activeCategory, setActiveCategory] = useState<InvestmentCategory>("etf");
   const [selectedInvestmentId, setSelectedInvestmentId] = useState<string | null>(null);
   const [activePlayerId, setActivePlayerId] = useState<number>(players[0]?.id ?? 0);
+  const [tradeQuantity, setTradeQuantity] = useState<number>(1);
 
   // Determine which categories are unlocked
   const unlockedCategories: InvestmentCategory[] = ["etf"];
@@ -50,6 +54,20 @@ export default function InvestmentPanel({ sellOnly = false }: InvestmentPanelPro
     (h) => h.investmentId === selectedInvestmentId
   );
 
+  // Compute unrealized P&L for a holding
+  const getUnrealizedPnL = (holdingInvestmentId: string) => {
+    const inv = investments.find((i) => i.id === holdingInvestmentId);
+    const holding = activePlayer?.holdings.find((h) => h.investmentId === holdingInvestmentId);
+    if (!inv || !holding) return null;
+    const pnl = (inv.currentPrice - holding.averageBuyPrice) * holding.quantity;
+    const pnlPct = ((inv.currentPrice - holding.averageBuyPrice) / holding.averageBuyPrice) * 100;
+    return { pnl, pnlPct };
+  };
+
+  const tradeCost = selectedInvestment ? selectedInvestment.currentPrice * tradeQuantity : 0;
+  const canBuy = activePlayer && selectedInvestment && activePlayer.money >= tradeCost;
+  const canSell = playerHolding && playerHolding.quantity >= tradeQuantity;
+
   return (
     <div className="investment-panel">
       {/* Player selector tabs */}
@@ -66,7 +84,7 @@ export default function InvestmentPanel({ sellOnly = false }: InvestmentPanelPro
               }}
               onClick={() => setActivePlayerId(p.id)}
             >
-              {p.name} — ${p.money.toLocaleString()}
+              {p.playerName} — ${p.money.toLocaleString()}
             </button>
           ))}
         </div>
@@ -96,27 +114,43 @@ export default function InvestmentPanel({ sellOnly = false }: InvestmentPanelPro
 
       {/* Investment list */}
       <div className="inv-list">
-        {visibleInvestments.map((inv) => (
-          <div
-            key={inv.id}
-            className={`inv-item ${inv.id === selectedInvestmentId ? "selected" : ""}`}
-            onClick={() => setSelectedInvestmentId(inv.id)}
-          >
-            <div className="inv-item-header">
-              <span className="inv-ticker">{inv.ticker}</span>
-              <span className="inv-name">{inv.name}</span>
+        {visibleInvestments.map((inv) => {
+          const holding = activePlayer?.holdings.find((h) => h.investmentId === inv.id);
+          const pnlData = holding ? (() => {
+            const pnl = (inv.currentPrice - holding.averageBuyPrice) * holding.quantity;
+            const pnlPct = ((inv.currentPrice - holding.averageBuyPrice) / holding.averageBuyPrice) * 100;
+            return { pnl, pnlPct };
+          })() : null;
+
+          return (
+            <div
+              key={inv.id}
+              className={`inv-item ${inv.id === selectedInvestmentId ? "selected" : ""}`}
+              onClick={() => setSelectedInvestmentId(inv.id)}
+            >
+              <div className="inv-item-header">
+                <span className="inv-ticker">{inv.ticker}</span>
+                <span className="inv-name">{inv.name}</span>
+              </div>
+              <div className="inv-item-right">
+                <div className="inv-item-price">
+                  <span className="inv-price">${inv.currentPrice.toFixed(2)}</span>
+                  <span
+                    className={`inv-change ${inv.lastChange >= 0 ? "positive" : "negative"}`}
+                  >
+                    {inv.lastChange >= 0 ? "▲" : "▼"}{" "}
+                    {Math.abs(inv.lastChange).toFixed(2)}%
+                  </span>
+                </div>
+                {holding && pnlData && (
+                  <div className={`inv-pnl-small ${pnlData.pnl >= 0 ? "positive" : "negative"}`}>
+                    {pnlData.pnl >= 0 ? "+" : ""}${Math.round(pnlData.pnl).toLocaleString()} ({pnlData.pnlPct >= 0 ? "+" : ""}{pnlData.pnlPct.toFixed(1)}%)
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="inv-item-price">
-              <span className="inv-price">${inv.currentPrice.toFixed(2)}</span>
-              <span
-                className={`inv-change ${inv.lastChange >= 0 ? "positive" : "negative"}`}
-              >
-                {inv.lastChange >= 0 ? "▲" : "▼"}{" "}
-                {Math.abs(inv.lastChange).toFixed(2)}%
-              </span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Detail view for selected investment */}
@@ -136,11 +170,37 @@ export default function InvestmentPanel({ sellOnly = false }: InvestmentPanelPro
             <PriceChart history={selectedInvestment.priceHistory} />
           </div>
 
-          {/* Holdings info */}
-          {playerHolding && (
-            <div className="inv-holding">
-              You hold: {playerHolding.quantity} units (avg buy: $
-              {playerHolding.averageBuyPrice.toFixed(2)})
+          {/* Holdings info with P&L */}
+          {playerHolding && (() => {
+            const pnlData = getUnrealizedPnL(selectedInvestment.id);
+            return (
+              <div className="inv-holding">
+                <div className="inv-holding-row">
+                  <span>You hold: <strong>{playerHolding.quantity} units</strong></span>
+                  <span className="inv-holding-avg">avg buy: ${playerHolding.averageBuyPrice.toFixed(2)}</span>
+                </div>
+                {pnlData && (
+                  <div className={`inv-holding-pnl ${pnlData.pnl >= 0 ? "positive" : "negative"}`}>
+                    Unrealized P&L: {pnlData.pnl >= 0 ? "+" : ""}${Math.round(pnlData.pnl).toLocaleString()} ({pnlData.pnlPct >= 0 ? "+" : ""}{pnlData.pnlPct.toFixed(1)}%)
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
+          {/* Quantity selector */}
+          {activePlayer && (
+            <div className="inv-quantity-selector">
+              <span className="inv-qty-label">Qty:</span>
+              {QUANTITY_OPTIONS.map((q) => (
+                <button
+                  key={q}
+                  className={`inv-qty-btn ${tradeQuantity === q ? "active" : ""}`}
+                  onClick={() => setTradeQuantity(q)}
+                >
+                  {q}
+                </button>
+              ))}
             </div>
           )}
 
@@ -150,22 +210,27 @@ export default function InvestmentPanel({ sellOnly = false }: InvestmentPanelPro
               {!sellOnly && (
                 <button
                   className="modal-btn primary"
-                  disabled={activePlayer.money < selectedInvestment.currentPrice}
+                  disabled={!canBuy}
                   onClick={() => {
-                    buyInvestment(activePlayer.id, selectedInvestment.id, 1);
+                    buyInvestment(activePlayer.id, selectedInvestment.id, tradeQuantity);
                   }}
                 >
-                  Buy 1 (${selectedInvestment.currentPrice.toFixed(2)})
+                  Buy {tradeQuantity} (${tradeCost.toFixed(2)})
                 </button>
               )}
               {playerHolding && playerHolding.quantity > 0 && (
                 <button
                   className="modal-btn secondary"
+                  disabled={!canSell}
                   onClick={() => {
-                    sellInvestment(activePlayer.id, selectedInvestment.id, 1);
+                    sellInvestment(
+                      activePlayer.id,
+                      selectedInvestment.id,
+                      Math.min(tradeQuantity, playerHolding.quantity)
+                    );
                   }}
                 >
-                  Sell 1 (${selectedInvestment.currentPrice.toFixed(2)})
+                  Sell {Math.min(tradeQuantity, playerHolding.quantity)} (${(selectedInvestment.currentPrice * Math.min(tradeQuantity, playerHolding.quantity)).toFixed(2)})
                 </button>
               )}
             </div>

@@ -1,0 +1,175 @@
+/* ── Game Over Overlay ────────────────────────────────────────────── */
+.gameover-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Game Over Card ───────────────────────────────────────────────── */
+.gameover-card {
+  background: linear-gradient(140deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%);
+  border: 2px solid rgba(255, 215, 0, 0.6);
+  border-radius: 24px;
+  padding: 44px 48px;
+  max-width: 520px;
+  width: 92%;
+  text-align: center;
+  box-shadow: 0 0 80px rgba(255, 215, 0, 0.2), 0 28px 80px rgba(0, 0, 0, 0.6);
+  animation: slideUp 0.4s ease;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(32px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ── Trophy ──────────────────────────────────────────────────────── */
+.gameover-trophy {
+  font-size: 64px;
+  line-height: 1;
+  margin-bottom: 10px;
+  display: block;
+  filter: drop-shadow(0 0 28px rgba(255, 215, 0, 0.5));
+  animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s both;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* ── Title ───────────────────────────────────────────────────────── */
+.gameover-title {
+  font-size: 30px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 8px;
+}
+
+.gameover-winner {
+  font-size: 18px;
+  font-weight: 700;
+  color: #c8d8e8;
+  margin-bottom: 28px;
+  line-height: 1.5;
+}
+
+/* ── Player Rankings ─────────────────────────────────────────────── */
+.gameover-players {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.gameover-player {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  transition: background 0.15s ease;
+}
+
+.gameover-player.winner {
+  background: rgba(255, 215, 0, 0.08);
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.gameover-rank {
+  font-size: 18px;
+  font-weight: 800;
+  color: #556677;
+  min-width: 32px;
+  padding-top: 1px;
+}
+
+.gameover-player.winner .gameover-rank {
+  color: #ffd700;
+}
+
+.gameover-player-name {
+  font-size: 16px;
+  font-weight: 700;
+  min-width: 80px;
+  padding-top: 1px;
+}
+
+.gameover-player-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.gameover-player-stats span {
+  font-size: 12px;
+  color: #778899;
+}
+
+.gameover-player-stats span:first-child {
+  font-size: 13px;
+  color: #aabbcc;
+  font-weight: 600;
+}
+
+.gameover-bankrupt {
+  color: #F44336 !important;
+  font-weight: 700 !important;
+}
+
+/* ── Tip ─────────────────────────────────────────────────────────── */
+.gameover-tip {
+  background: rgba(76, 175, 80, 0.08);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: #aabbcc;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.gameover-tip strong {
+  color: #ffffff;
+}
+
+/* ── Play Again Button ───────────────────────────────────────────── */
+.gameover-btn {
+  width: 100%;
+  padding: 14px 32px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #4CAF50, #388E3C);
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 20px rgba(76, 175, 80, 0.4);
+}
+
+.gameover-btn:hover {
+  transform: scale(1.03);
+  box-shadow: 0 6px 28px rgba(76, 175, 80, 0.6);
+}
+
+.gameover-btn:active {
+  transform: scale(0.97);
+}

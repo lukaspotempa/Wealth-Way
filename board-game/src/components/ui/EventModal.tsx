@@ -14,6 +14,7 @@ export default function EventModal() {
   const currentPlayer = useGameStore((s) => s.getCurrentPlayer());
   const payNegativeEvent = useGameStore((s) => s.payNegativeEvent);
   const declareBankrupt = useGameStore((s) => s.declareBankrupt);
+  const investments = useGameStore((s) => s.investments);
 
   if (!activeEvent) return null;
 
@@ -43,27 +44,43 @@ export default function EventModal() {
         </div>
       );
 
-    case "market-event":
+    case "market-event": {
+      const event = activeEvent.event;
+      const affectedNames = event.affectedInvestmentIds
+        .map((id) => investments.find((inv) => inv.id === id))
+        .filter(Boolean)
+        .map((inv) => `${inv!.ticker} (${inv!.name})`);
+
       return (
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h2>📰 {activeEvent.event.title}</h2>
+              <h2>📰 {event.title}</h2>
             </div>
-            <p className="modal-description">
-              {activeEvent.event.description}
-            </p>
+            <p className="modal-description">{event.description}</p>
             <div className="modal-impact">
-              {activeEvent.event.priceMultiplier >= 1 ? (
+              {event.priceMultiplier >= 1 ? (
                 <span className="impact-positive">
-                  ▲ +{Math.round((activeEvent.event.priceMultiplier - 1) * 100)}% to affected investments
+                  ▲ +{Math.round((event.priceMultiplier - 1) * 100)}% to affected investments
                 </span>
               ) : (
                 <span className="impact-negative">
-                  ▼ {Math.round((activeEvent.event.priceMultiplier - 1) * 100)}% to affected investments
+                  ▼ {Math.round((event.priceMultiplier - 1) * 100)}% to affected investments
                 </span>
               )}
             </div>
+            {affectedNames.length > 0 && (
+              <div className="modal-affected">
+                <span className="modal-affected-label">Affected:</span>{" "}
+                {affectedNames.join(", ")}
+              </div>
+            )}
+            {event.learningTip && (
+              <div className="modal-learning-tip">
+                <span className="modal-tip-icon">💡</span>
+                <p>{event.learningTip}</p>
+              </div>
+            )}
             <div className="modal-actions">
               <button className="modal-btn primary" onClick={handleDismiss}>
                 OK
@@ -72,6 +89,7 @@ export default function EventModal() {
           </div>
         </div>
       );
+    }
 
     case "income":
       return (

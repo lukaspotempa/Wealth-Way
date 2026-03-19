@@ -144,3 +144,41 @@
   cursor: not-allowed;
   transform: none;
 }
+
+/* ── Affected Investments ─────────────────────────────────────────── */
+.modal-affected {
+  font-size: 13px;
+  color: #8899aa;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.modal-affected-label {
+  font-weight: 700;
+  color: #aabbcc;
+}
+
+/* ── Learning Tip ─────────────────────────────────────────────────── */
+.modal-learning-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(255, 215, 0, 0.07);
+  border: 1px solid rgba(255, 215, 0, 0.18);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 4px;
+}
+
+.modal-tip-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.modal-learning-tip p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #b8ccd8;
+  margin: 0;
+}
