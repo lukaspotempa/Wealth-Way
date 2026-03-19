@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { BookOpen, HelpCircle, Flag, Swords, Check, Lock } from 'lucide-vue-next'
 import { useJourneyStore } from '@/stores/journey'
 import { useUserStore } from '@/stores/user'
 import type { JourneyNode } from '@/types'
@@ -18,11 +19,11 @@ onMounted(() => {
   }, 100)
 })
 
-const nodeTypeIcons: Record<string, string> = {
-  lesson: '📖',
-  quiz: '❓',
-  checkpoint: '🏁',
-  challenge: '⚔️',
+const nodeTypeIcons: Record<string, any> = {
+  lesson: BookOpen,
+  quiz: HelpCircle,
+  checkpoint: Flag,
+  challenge: Swords,
 }
 
 const nodeTypeColors: Record<string, string> = {
@@ -50,7 +51,7 @@ const svgNodes = computed(() => {
     const isCompleted = node.status === 'completed'
     const isCurrent = node.status === 'available'
     const color = nodeTypeColors[node.type] || 'var(--color-primary)'
-    const icon = nodeTypeIcons[node.type] || '📖'
+    const icon = nodeTypeIcons[node.type] || BookOpen
 
     return {
       ...node,
@@ -67,6 +68,8 @@ const svgNodes = computed(() => {
   })
 })
 
+const selectedNode = ref<any | null>(null)
+
 // Build SVG path connecting all nodes in order
 function buildPath(): string {
   const pts = svgNodes.value.map((n) => ({ x: n.px, y: n.py }))
@@ -82,8 +85,16 @@ function buildPath(): string {
   return d
 }
 
-function navigateToNode(node: JourneyNode) {
+function navigateToNode(node: any) {
   if (node.status === 'locked') return
+  if (selectedNode.value?.id === node.id) {
+    selectedNode.value = null
+  } else {
+    selectedNode.value = node
+  }
+}
+
+function startNode(node: JourneyNode) {
   router.push(node.route)
 }
 
@@ -104,7 +115,7 @@ const greeting = computed(() => {
       </div>
     </div>
 
-    <!-- AutoBattle call-to-action banner -->
+    <!-- AutoBattle call-to-action banner 
     <div class="autobattle-banner">
       <div class="autobattle-banner-inner container">
         <div class="autobattle-banner-text">
@@ -119,18 +130,19 @@ const greeting = computed(() => {
           Play Portfolio Battle &#8594;
         </router-link>
       </div>
-    </div>
+    </div>-->
 
-    <div class="journey-map-wrapper">
+    <div class="journey-map-wrapper" @click="selectedNode = null">
       <div ref="mapContainer" class="journey-map map-container" :class="{ 'journey-map--loaded': isLoaded }">
-        <svg
-          :viewBox="`0 0 ${W} ${H}`"
-          :width="W"
-          :height="H"
-          class="journey-svg"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <!-- Background path (full, dim) -->
+        <div class="svg-container" :style="{ width: W + 'px', height: H + 'px', position: 'relative' }">
+          <svg
+            :viewBox="`0 0 ${W} ${H}`"
+            :width="W"
+            :height="H"
+            class="journey-svg"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <!-- Background path (full, dim) -->
           <path
             :d="buildPath()"
             fill="none"
@@ -147,7 +159,7 @@ const greeting = computed(() => {
             stroke="var(--color-primary)"
             stroke-width="6"
             stroke-linecap="round"
-            opacity="0.3"
+            opacity="0"
           />
 
           <!-- Nodes -->
@@ -161,7 +173,7 @@ const greeting = computed(() => {
               completed: node.isCompleted,
               current: node.isCurrent,
             }"
-            @click="navigateToNode(node)"
+            @click.stop="navigateToNode(node)"
             style="cursor: pointer"
           >
             <!-- Glow ring for current node -->
@@ -192,20 +204,41 @@ const greeting = computed(() => {
               :stroke="node.isUnlocked ? node.color : 'var(--color-border)'"
               stroke-width="3"
               class="node-circle"
+              :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
             />
 
             <!-- Icon / lock -->
-            <text
-              :x="node.px"
-              :y="node.py + 1"
-              text-anchor="middle"
-              dominant-baseline="middle"
-              font-size="18"
-              class="node-icon"
-              :opacity="node.isUnlocked ? 1 : 0.3"
-            >
-              {{ node.isCompleted ? '✅' : node.isUnlocked ? node.icon : '🔒' }}
-            </text>
+            <component
+              v-if="node.isCompleted"
+              :is="Check"
+              :x="node.px - 12"
+              :y="node.py - 12"
+              :size="24"
+              color="white"
+              class="node-icon-svg"
+              :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
+            />
+            <component
+              v-else-if="node.isUnlocked"
+              :is="node.icon"
+              :x="node.px - 12"
+              :y="node.py - 12"
+              :size="24"
+              color="var(--color-secondary)"
+              class="node-icon-svg"
+              :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
+            />
+            <component
+              v-else
+              :is="Lock"
+              :x="node.px - 12"
+              :y="node.py - 12"
+              :size="24"
+              color="black"
+              opacity="0.3"
+              class="node-icon-svg"
+              :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
+            />
 
             <!-- Label bubble -->
             <g class="node-label">
@@ -223,6 +256,32 @@ const greeting = computed(() => {
             </g>
           </g>
         </svg>
+
+        <!-- Tooltip Preview -->
+        <div
+          v-if="selectedNode"
+          class="node-tooltip"
+          :class="{ 'tooltip-below': selectedNode.py < 180 }"
+          :style="{
+            left: selectedNode.px + 'px',
+            top: selectedNode.py + 'px',
+          }"
+          @click.stop
+        >
+          <div class="tooltip-header">
+            <h4>{{ selectedNode.title }}</h4>
+            <span class="tooltip-type" :style="{ backgroundColor: selectedNode.color }">{{ selectedNode.type }}</span>
+          </div>
+          <p class="tooltip-desc">{{ selectedNode.description }}</p>
+          <div v-if="selectedNode.type !== 'checkpoint'" class="tooltip-actions">
+            <button class="tooltip-btn" @click="startNode(selectedNode)">
+              Start {{ selectedNode.type === 'challenge' ? 'Challenge' : selectedNode.type === 'quiz' ? 'Quiz' : 'Lesson' }}
+            </button>
+          </div>
+          <div class="tooltip-arrow"></div>
+        </div>
+
+        </div> <!-- end svg-container -->
       </div>
     </div>
   </div>
@@ -273,13 +332,13 @@ const greeting = computed(() => {
   max-width: 100%;
 }
 
-.node-group.unlocked .node-circle {
-  transition: all 0.2s ease;
-  filter: drop-shadow(0 0 6px rgba(255,203,0,0.3));
+.node-group.unlocked .node-circle,
+.node-group.unlocked .node-icon-svg {
+  transition: transform 0.2s ease, filter 0.2s ease;
 }
-.node-group.unlocked:hover .node-circle {
+.node-group.unlocked:hover .node-circle,
+.node-group.unlocked:hover .node-icon-svg {
   transform: scale(1.1);
-  filter: drop-shadow(0 0 12px rgba(255,203,0,0.6));
 }
 
 .node-group.current .node-circle {
@@ -368,5 +427,110 @@ const greeting = computed(() => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1.5rem;
+}
+
+/* Tooltip */
+.node-tooltip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 35px));
+  width: 240px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  box-shadow: var(--shadow-lg);
+  z-index: 10;
+  pointer-events: auto;
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.node-tooltip.tooltip-below {
+  transform: translate(-50%, 35px);
+  animation: popInBelow 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.node-tooltip .tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.node-tooltip h4 {
+  font-size: 1.05rem;
+  margin: 0;
+  color: var(--color-heading);
+  line-height: 1.2;
+}
+
+.node-tooltip .tooltip-type {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #fff;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-full);
+}
+
+.node-tooltip .tooltip-desc {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+
+.node-tooltip .tooltip-actions {
+  display: flex;
+  justify-content: stretch;
+}
+
+.node-tooltip .tooltip-btn {
+  width: 100%;
+  background: var(--color-primary);
+  color: var(--color-secondary);
+  border: none;
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.node-tooltip .tooltip-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+/* Tooltip pointer arrow */
+.tooltip-arrow {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 14px;
+  height: 14px;
+  background: var(--color-surface);
+  border-right: 2px solid var(--color-border);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.node-tooltip.tooltip-below .tooltip-arrow {
+  top: -8px;
+  bottom: auto;
+  border-top: 2px solid var(--color-border);
+  border-left: 2px solid var(--color-border);
+  border-right: none;
+  border-bottom: none;
+}
+
+@keyframes popIn {
+  0% { opacity: 0; transform: translate(-50%, calc(-100% - 20px)) scale(0.9); }
+  100% { opacity: 1; transform: translate(-50%, calc(-100% - 35px)) scale(1); }
+}
+
+@keyframes popInBelow {
+  0% { opacity: 0; transform: translate(-50%, 20px) scale(0.9); }
+  100% { opacity: 1; transform: translate(-50%, 35px) scale(1); }
 }
 </style>

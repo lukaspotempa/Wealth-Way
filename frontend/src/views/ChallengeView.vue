@@ -1469,7 +1469,6 @@ const resultInsights = computed(() => {
 
 .btn--primary:hover:not(:disabled) {
   background: var(--color-primary-hover);
-  transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
 

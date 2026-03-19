@@ -2,41 +2,72 @@
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useJourneyStore } from '@/stores/journey'
-import { lesson1Slides, calculateChildrenSavings } from '@/services/lessonData'
+import { lesson1Slides, quiz1Slides, calculateChildrenSavings } from '@/services/lessonData'
 import NetWorthChart from '@/components/lessons/NetWorthChart.vue'
 import InflationChart from '@/components/lessons/InflationChart.vue'
+import SamRealValueChart from '@/components/lessons/SamRealValueChart.vue'
 
 const route = useRoute()
 const router = useRouter()
 const journeyStore = useJourneyStore()
 
-const lessonId = computed(() => route.params.id as string)
+const isQuiz = computed(() => route.name === 'quiz')
+const id = computed(() => route.params.id as string)
+
 const currentSlide = ref(0)
-const slides = lesson1Slides
+
+const slides = computed(() => {
+  if (isQuiz.value) {
+    if (id.value === '1') return quiz1Slides
+  } else {
+    if (id.value === '1') return lesson1Slides
+  }
+  return []
+})
+
 const savingsData = calculateChildrenSavings()
 const finalData = savingsData[savingsData.length - 1]
 
-const totalSlides = slides.length
+const totalSlides = computed(() => slides.value.length)
 
-const progressPercent = computed(() => ((currentSlide.value + 1) / totalSlides) * 100)
+const selectedOptionId = ref<number | null>(null)
+const multiSelectedOptions = ref<Record<number, number>>({})
+
+const progressPercent = computed(() => ((currentSlide.value + 1) / totalSlides.value) * 100)
 
 function nextSlide() {
-  if (currentSlide.value < totalSlides - 1) {
+  selectedOptionId.value = null
+  multiSelectedOptions.value = {}
+  if (currentSlide.value < totalSlides.value - 1) {
     currentSlide.value++
   } else {
-    // Lesson complete
-    journeyStore.completeNode(`lesson-${lessonId.value}`)
+    // Complete the node
+    const nodeId = isQuiz.value ? `quiz-${id.value}` : `lesson-${id.value}`
+    journeyStore.completeNode(nodeId)
     router.push('/journey')
   }
 }
 
 function prevSlide() {
+  selectedOptionId.value = null
+  multiSelectedOptions.value = {}
   if (currentSlide.value > 0) {
     currentSlide.value--
   }
 }
 
-const currentSlideData = computed(() => slides[currentSlide.value])
+function selectOption(index: number) {
+  selectedOptionId.value = index
+}
+
+function selectMultiOption(qIndex: number, oIndex: number) {
+  multiSelectedOptions.value = {
+    ...multiSelectedOptions.value,
+    [qIndex]: oIndex
+  }
+}
+
+const currentSlideData = computed(() => slides.value[currentSlide.value])
 </script>
 
 <template>
@@ -57,8 +88,8 @@ const currentSlideData = computed(() => slides[currentSlide.value])
 
       <!-- Lesson title -->
       <div class="lesson-title-section">
-        <span class="lesson-badge">Lesson {{ lessonId }}</span>
-        <h1>What is Money Actually Worth?</h1>
+        <span class="lesson-badge">{{ isQuiz ? 'Quiz' : 'Lesson' }} {{ id }}</span>
+        <h1>{{ isQuiz ? '' : 'Introduction' }}</h1>
       </div>
 
       <!-- Slide content -->
@@ -91,7 +122,6 @@ const currentSlideData = computed(() => slides[currentSlide.value])
                 :key="child.name"
                 class="child-card"
               >
-                <div class="child-emoji">{{ child.emoji }}</div>
                 <h3>{{ child.name }}</h3>
                 <span class="strategy-badge">{{ child.strategy }}</span>
                 <p class="child-decision">{{ child.decision }}</p>
@@ -111,7 +141,6 @@ const currentSlideData = computed(() => slides[currentSlide.value])
                 class="result-card"
                 :class="{ 'result-card--winner': i === 2 }"
               >
-                <div class="result-emoji">{{ result.emoji }}</div>
                 <h3>{{ result.name }}</h3>
                 <p class="result-outcome">{{ result.outcome }}</p>
                 <p class="result-detail">{{ result.detail }}</p>
@@ -130,6 +159,39 @@ const currentSlideData = computed(() => slides[currentSlide.value])
             <p class="slide-text">{{ currentSlideData.content }}</p>
             <div class="chart-section">
               <NetWorthChart />
+            </div>
+          </template>
+
+          <!-- Sam Real Value Chart -->
+          <template v-else-if="currentSlideData?.type === 'chart-sam-real-value'">
+            <h2 class="slide-heading">{{ currentSlideData.title }}</h2>
+            <p class="slide-text">{{ currentSlideData.content }}</p>
+            <div class="chart-section">
+              <SamRealValueChart />
+            </div>
+          </template>
+
+          <!-- Interactive Question -->
+          <template v-else-if="currentSlideData?.type === 'question'">
+            <h2 class="slide-heading">{{ currentSlideData.title }}</h2>
+            <p class="slide-text">{{ currentSlideData.question }}</p>
+            <div class="question-options">
+              <button
+                v-for="(option, idx) in currentSlideData.options"
+                :key="idx"
+                class="option-btn"
+                :class="{ 
+                  'selected': selectedOptionId === idx,
+                  'correct': selectedOptionId === idx && option.isCorrect,
+                  'incorrect': selectedOptionId === idx && !option.isCorrect 
+                }"
+                @click="selectOption(idx)"
+              >
+                {{ option.text }}
+              </button>
+            </div>
+            <div v-if="selectedOptionId !== null && currentSlideData?.options" class="question-feedback" :class="{ 'feedback-correct': currentSlideData.options?.[selectedOptionId]?.isCorrect }">
+              <p>{{ currentSlideData.options?.[selectedOptionId]?.feedback }}</p>
             </div>
           </template>
 
@@ -168,8 +230,12 @@ const currentSlideData = computed(() => slides[currentSlide.value])
           &#8592; Previous
         </button>
         <div v-else />
-        <button class="btn btn--primary" @click="nextSlide">
-          {{ currentSlide === totalSlides - 1 ? 'Complete Lesson &#10003;' : 'Next &#8594;' }}
+        <button
+          class="btn btn--primary"
+          @click="nextSlide"
+          :disabled="currentSlideData?.type === 'question' && (selectedOptionId === null || !currentSlideData.options?.[selectedOptionId]?.isCorrect)"
+        >
+          {{ currentSlide === totalSlides - 1 ? (isQuiz ? 'Complete Quiz &#10003;' : 'Complete Lesson &#10003;') : 'Next &#8594;' }}
         </button>
       </div>
     </div>
@@ -261,7 +327,7 @@ const currentSlideData = computed(() => slides[currentSlide.value])
 
 /* Slide content */
 .slide-content {
-  min-height: 400px;
+  min-height: auto;
 }
 
 .slide-heading {
@@ -406,7 +472,6 @@ html.dark .strategy-badge {
 
 .result-card--winner {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(255, 203, 0, 0.15);
 }
 
 .result-emoji {
@@ -454,6 +519,65 @@ html.dark .strategy-badge {
 /* Summary */
 .slide-card--summary {
   text-align: left;
+}
+
+/* Questions */
+.question-options {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.option-btn {
+  padding: 1rem;
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+}
+
+.option-btn:hover {
+  border-color: var(--color-primary-hover);
+  background: var(--color-background-soft);
+}
+
+.option-btn.selected {
+  border-color: var(--color-primary);
+  background: rgba(255, 203, 0, 0.1);
+  font-weight: 700;
+}
+
+.option-btn.selected.correct {
+  border-color: var(--color-success);
+  background: var(--color-success-light);
+  color: var(--color-success);
+}
+
+.option-btn.selected.incorrect {
+  border-color: var(--color-error);
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--color-error);
+}
+
+.question-feedback {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  border-left: 4px solid var(--color-primary);
+  color: var(--color-text);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.question-feedback.feedback-correct {
+  border-left-color: var(--color-success);
 }
 
 .summary-list {
@@ -509,10 +633,16 @@ html.dark .strategy-badge {
   color: var(--color-secondary);
 }
 
-.btn--primary:hover {
+.btn--primary:hover:not(:disabled) {
   background: var(--color-primary-hover);
-  transform: translateY(-1px);
   box-shadow: var(--shadow-md);
+}
+
+.btn--primary:disabled {
+  background: var(--color-border);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .btn--ghost {

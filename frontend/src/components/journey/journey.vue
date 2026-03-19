@@ -2,6 +2,7 @@
 // @ts-nocheck
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { BookOpen, HelpCircle, Flag, Swords, Check, Lock, Star } from 'lucide-vue-next'
 import { LEVELS, getUnlockedLevelIds } from '@/data/levels'
 import { useUserStore } from '@/stores/userStore'
 
@@ -121,20 +122,41 @@ function openLevel(node: (typeof nodes.value)[0]) {
           :stroke="node.isUnlocked ? node.color : 'var(--card-border)'"
           stroke-width="3"
           class="node-circle"
+          :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
         />
 
         <!-- Icon / lock -->
-        <text
-          :x="node.px"
-          :y="node.py + 1"
-          text-anchor="middle"
-          dominant-baseline="middle"
-          font-size="18"
-          class="node-icon"
-          :opacity="node.isUnlocked ? 1 : 0.3"
-        >
-          {{ node.isCompleted ? 'âœ…' : node.isUnlocked ? node.icon : 'ðŸ”’' }}
-        </text>
+        <component
+          v-if="node.isCompleted"
+          :is="Check"
+          :x="node.px - 12"
+          :y="node.py - 12"
+          :size="24"
+          color="white"
+          class="node-icon-svg"
+          :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
+        />
+        <component
+          v-else-if="node.isUnlocked"
+          :is="node.icon"
+          :x="node.px - 12"
+          :y="node.py - 12"
+          :size="24"
+          color="black"
+          class="node-icon-svg"
+          :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
+        />
+        <component
+          v-else
+          :is="Lock"
+          :x="node.px - 12"
+          :y="node.py - 12"
+          :size="24"
+          color="white"
+          opacity="0.5"
+          class="node-icon-svg"
+          :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
+        />
 
         <!-- Label bubble -->
         <g class="node-label">
@@ -151,15 +173,23 @@ function openLevel(node: (typeof nodes.value)[0]) {
           >{{ node.title.length > 20 ? node.title.substring(0, 18) + 'â€¦' : node.title }}</text>
 
           <!-- XP label -->
+          <component
+            :is="Star"
+            :x="node.mapX > 0.5 ? node.px - 32 - 12 : node.px + 32 - 12"
+            :y="node.py + 4"
+            :width="12"
+            :height="12"
+            :color="node.isUnlocked ? 'var(--primary)' : 'var(--text-dim)'"
+          />
           <text
-            :x="node.mapX > 0.5 ? node.px - 32 : node.px + 32"
+            :x="node.mapX > 0.5 ? node.px - 32 + 4 : node.px + 32 + 4"
             :y="node.py + 12"
             :text-anchor="node.mapX > 0.5 ? 'end' : 'start'"
             dominant-baseline="middle"
             font-size="9"
             font-family="Nunito, sans-serif"
             :fill="node.isUnlocked ? 'var(--primary)' : 'var(--text-dim)'"
-          >â­ {{ node.xp }} XP</text>
+          >{{ node.xp }} XP</text>
         </g>
 
         <!-- Coming soon badge -->
@@ -200,12 +230,18 @@ function openLevel(node: (typeof nodes.value)[0]) {
   max-width: 100%;
 }
 
+.node-group.unlocked .node-circle,
+.node-group.unlocked .node-icon-svg {
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
 .node-group.unlocked .node-circle {
-  transition: all 0.2s ease;
-  filter: drop-shadow(0 0 6px rgba(255,203,0,0.3));
+
+}
+.node-group.unlocked:hover .node-circle,
+.node-group.unlocked:hover .node-icon-svg {
+  transform: scale(1.1);
 }
 .node-group.unlocked:hover .node-circle {
-  transform: scale(1.1);
   filter: drop-shadow(0 0 12px rgba(255,203,0,0.6));
 }
 
