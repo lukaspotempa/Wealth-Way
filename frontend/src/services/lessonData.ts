@@ -223,7 +223,7 @@ export const lesson2Slides = [
     id: 1,
     type: 'analogy-intro' as const,
     title: 'The Oak Tree and the Weather Watcher',
-    icon: '🌱',
+    icon: '<div>Test</div>',
     content: `Imagine you plant an acorn in your garden. You water it, give it sunlight, and then — you leave it alone.
 
 You don't dig it up every time a storm is forecast. You don't replant it on sunny days hoping for faster growth. You simply give it time.

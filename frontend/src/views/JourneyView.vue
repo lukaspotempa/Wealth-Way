@@ -5,6 +5,7 @@ import { BookOpen, HelpCircle, Flag, Swords, Check, Lock } from 'lucide-vue-next
 import { useJourneyStore } from '@/stores/journey'
 import { useUserStore } from '@/stores/user'
 import type { JourneyNode } from '@/types'
+import BarryTheBull from '@/components/ui/BarryTheBull.vue'
 
 const router = useRouter()
 const journeyStore = useJourneyStore()
@@ -111,7 +112,7 @@ const greeting = computed(() => {
     <div class="journey-header">
       <div class="container">
         <h1>{{ greeting }}, {{ userStore.displayName }}</h1>
-        <p class="journey-subtitle">Continue your path to financial mastery</p>
+        <p class="journey-subtitle">Continue your path to financial independence</p>
       </div>
     </div>
 
@@ -284,6 +285,13 @@ const greeting = computed(() => {
         </div> <!-- end svg-container -->
       </div>
     </div>
+
+    <!-- Barry Introduction -->
+    <BarryTheBull
+      v-if="journeyStore.progressPercent === 0"
+      text="Welcome! Start your first lesson by clicking on the flashing lesson node."
+      :time="8"
+    />
   </div>
 </template>
 
