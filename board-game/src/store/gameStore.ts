@@ -138,8 +138,24 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     const player = players[currentPlayerIndex];
     const oldIndex = player.tileIndex;
-    const newIndex = (oldIndex + diceValue) % TOTAL_TILES;
-    const passedStart = newIndex < oldIndex; // wrapped around
+
+    // Corner tiles (indices 0, 10, 20, 30) are skipped — they don't count as a step.
+    // Advance step by step, skipping over any corner tile encountered mid-move.
+    const CORNER_INDICES = new Set([0, 10, 20, 30]);
+    let pos = oldIndex;
+    let stepsRemaining = diceValue;
+    let passedStart = false;
+    const passedCorners: number[] = [];
+    while (stepsRemaining > 0) {
+      pos = (pos + 1) % TOTAL_TILES;
+      if (CORNER_INDICES.has(pos)) {
+        passedCorners.push(pos);
+        if (pos === 0) passedStart = true; // stepped through START
+      } else {
+        stepsRemaining--;
+      }
+    }
+    const newIndex = pos;
 
     // Update player position
     const updatedPlayers = [...players];
@@ -160,6 +176,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     if (passedStart) {
       log.push(`${player.name} passed START!`);
+    }
+    // Log any other corners passed through (non-START corners are checkpoint markers)
+    for (const ci of passedCorners) {
+      if (ci !== 0) {
+        log.push(`${player.name} passed through a checkpoint (tile ${ci}).`);
+      }
     }
 
     // Determine tile event

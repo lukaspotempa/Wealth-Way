@@ -2,7 +2,7 @@ import type { BoardConfig } from "../types/board";
 
 export const BOARD_CONFIG: BoardConfig = {
   tilesPerSide: 9,
-  tileWidth: 1.0,
+  tileWidth: 0.65,
   tileDepth: 0.65,
   cornerSize: 1.0,
   tileHeight: 0.12,
