@@ -56,12 +56,12 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="StartHack Dashboard API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="Wealth Manager ", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=["https://investmentgame.de"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
