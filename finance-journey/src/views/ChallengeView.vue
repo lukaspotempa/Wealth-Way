@@ -26,79 +26,333 @@ const phase = ref<Phase>('configure')
 // ─── Portfolio definition ────────────────────────────────────────────────────
 
 const assets = ref<AutoBattleAsset[]>([
+  // ── Equity Indices ────────────────────────────────────────────────────────
   {
-    key: 'SMI',
-    name: 'Swiss Market Index',
+    key: 'SMI_INDEX',
+    name: 'Swiss Market Index (SMI)',
     ticker: 'SMI',
-    description: "Switzerland's blue-chip index — 20 largest Swiss companies",
-    category: 'Swiss Stocks',
+    description: "Switzerland's blue-chip price-return index — top 20 companies",
+    category: 'Indices',
     risk: 'medium',
     color: '#FFCB00',
     allocation: 0,
   },
   {
-    key: 'BONDS_CHF',
-    name: 'Swiss Government Bonds',
-    ticker: 'CHF-BOND',
-    description: 'AAA-rated Swiss Confederation bonds, 5–10 year maturity',
+    key: 'DAX',
+    name: 'DAX (Germany)',
+    ticker: 'DAX',
+    description: 'German blue-chip total-return index — 40 largest companies',
+    category: 'Indices',
+    risk: 'medium',
+    color: '#ef4444',
+    allocation: 0,
+  },
+  {
+    key: 'EUROSTOXX50',
+    name: 'EuroStoxx 50',
+    ticker: 'SX5E',
+    description: 'Eurozone blue-chip price-return index — top 50 companies',
+    category: 'Indices',
+    risk: 'medium',
+    color: '#3b82f6',
+    allocation: 0,
+  },
+  {
+    key: 'DJIA_INDEX',
+    name: 'Dow Jones (DJIA)',
+    ticker: 'DJIA',
+    description: 'US blue-chip price-return index — 30 industrial companies',
+    category: 'Indices',
+    risk: 'medium',
+    color: '#6366f1',
+    allocation: 0,
+  },
+  {
+    key: 'NIKKEI',
+    name: 'Nikkei 225 (Japan)',
+    ticker: 'NKY',
+    description: 'Japanese blue-chip price-return index — top 225 companies',
+    category: 'Indices',
+    risk: 'medium',
+    color: '#ec4899',
+    allocation: 0,
+  },
+  // ── Bonds ─────────────────────────────────────────────────────────────────
+  {
+    key: 'SWISS_BOND_TRI',
+    name: 'Swiss Bond AAA-BBB (TRI)',
+    ticker: 'SBOND',
+    description: 'Swiss investment-grade bond total-return index',
     category: 'Bonds',
     risk: 'low',
     color: '#004A5A',
     allocation: 0,
   },
   {
-    key: 'GLOBAL_ETF',
-    name: 'Global ETF (MSCI World)',
-    ticker: 'MSCI-ETF',
-    description: 'Low-cost passive ETF tracking the MSCI World index',
-    category: 'Global ETF',
-    risk: 'medium',
-    color: '#8b5cf6',
+    key: 'BLOOMBERG_GLOBAL_AGG',
+    name: 'Bloomberg Global Agg (CHF hedged)',
+    ticker: 'BAGG',
+    description: 'Global investment-grade bonds, hedged to CHF',
+    category: 'Bonds',
+    risk: 'low',
+    color: '#0ea5e9',
     allocation: 0,
   },
+  // ── Commodities ───────────────────────────────────────────────────────────
   {
-    key: 'REAL_ESTATE',
-    name: 'Swiss Real Estate Fund',
-    ticker: 'RE-CH',
-    description: 'Listed Swiss real estate fund — residential and commercial',
-    category: 'Real Estate',
+    key: 'GOLD_CHF',
+    name: 'Gold (CHF)',
+    ticker: 'GOLD',
+    description: 'Gold spot price denominated in Swiss francs',
+    category: 'Commodities',
     risk: 'medium',
-    color: '#10b981',
-    allocation: 0,
-  },
-  {
-    key: 'EMERGING_MARKETS',
-    name: 'Emerging Markets ETF',
-    ticker: 'EM',
-    description: 'Broad exposure to China, India, Brazil and more',
-    category: 'Emerging Markets',
-    risk: 'high',
     color: '#f59e0b',
     allocation: 0,
   },
+  // ── SMI Single Stocks ─────────────────────────────────────────────────────
   {
-    key: 'CASH',
-    name: 'Cash Reserve',
-    ticker: 'CASH',
-    description: 'Swiss franc cash equivalents — near-zero return, max stability',
-    category: 'Cash',
-    risk: 'low',
+    key: 'NESN',
+    name: 'Nestlé',
+    ticker: 'NESN',
+    description: "World's largest food & beverage company",
+    category: 'CH Stocks',
+    risk: 'medium',
+    color: '#dc2626',
+    allocation: 0,
+  },
+  {
+    key: 'NOVN',
+    name: 'Novartis',
+    ticker: 'NOVN',
+    description: 'Global pharmaceutical & healthcare company',
+    category: 'CH Stocks',
+    risk: 'medium',
+    color: '#16a34a',
+    allocation: 0,
+  },
+  {
+    key: 'ROG',
+    name: 'Roche',
+    ticker: 'ROG',
+    description: 'Global leader in diagnostics and oncology',
+    category: 'CH Stocks',
+    risk: 'medium',
+    color: '#2563eb',
+    allocation: 0,
+  },
+  {
+    key: 'ABBN',
+    name: 'ABB',
+    ticker: 'ABBN',
+    description: 'Global technology leader in electrification and automation',
+    category: 'CH Stocks',
+    risk: 'medium',
+    color: '#7c3aed',
+    allocation: 0,
+  },
+  {
+    key: 'UBSG',
+    name: 'UBS Group',
+    ticker: 'UBSG',
+    description: "Switzerland's largest bank and wealth manager",
+    category: 'CH Stocks',
+    risk: 'high',
+    color: '#d97706',
+    allocation: 0,
+  },
+  {
+    key: 'ZURN',
+    name: 'Zurich Insurance',
+    ticker: 'ZURN',
+    description: 'Global insurance group headquartered in Zurich',
+    category: 'CH Stocks',
+    risk: 'medium',
+    color: '#059669',
+    allocation: 0,
+  },
+  {
+    key: 'CFR',
+    name: 'Richemont',
+    ticker: 'CFR',
+    description: 'Luxury goods group — Cartier, IWC, Vacheron Constantin',
+    category: 'CH Stocks',
+    risk: 'medium',
+    color: '#b45309',
+    allocation: 0,
+  },
+  {
+    key: 'SIKA',
+    name: 'Sika',
+    ticker: 'SIKA',
+    description: 'Specialty chemicals for construction and industry',
+    category: 'CH Stocks',
+    risk: 'medium',
+    color: '#0891b2',
+    allocation: 0,
+  },
+  {
+    key: 'GIVN',
+    name: 'Givaudan',
+    ticker: 'GIVN',
+    description: "World's leading flavour and fragrance company",
+    category: 'CH Stocks',
+    risk: 'medium',
+    color: '#9333ea',
+    allocation: 0,
+  },
+  {
+    key: 'LONN',
+    name: 'Lonza',
+    ticker: 'LONN',
+    description: 'Global leader in life sciences contract manufacturing',
+    category: 'CH Stocks',
+    risk: 'high',
+    color: '#e11d48',
+    allocation: 0,
+  },
+  {
+    key: 'LOGN',
+    name: 'Logitech',
+    ticker: 'LOGN',
+    description: 'Global peripherals and software company',
+    category: 'CH Stocks',
+    risk: 'high',
+    color: '#64748b',
+    allocation: 0,
+  },
+  // ── US Single Stocks ──────────────────────────────────────────────────────
+  {
+    key: 'AAPL',
+    name: 'Apple',
+    ticker: 'AAPL',
+    description: 'Consumer electronics, software and services giant',
+    category: 'US Stocks',
+    risk: 'medium',
     color: '#6b7280',
+    allocation: 0,
+  },
+  {
+    key: 'MSFT',
+    name: 'Microsoft',
+    ticker: 'MSFT',
+    description: 'Software, cloud computing and AI leader',
+    category: 'US Stocks',
+    risk: 'medium',
+    color: '#2563eb',
+    allocation: 0,
+  },
+  {
+    key: 'NVDA',
+    name: 'NVIDIA',
+    ticker: 'NVDA',
+    description: 'Semiconductors and AI accelerator chips',
+    category: 'US Stocks',
+    risk: 'high',
+    color: '#16a34a',
+    allocation: 0,
+  },
+  {
+    key: 'AMZN',
+    name: 'Amazon',
+    ticker: 'AMZN',
+    description: 'E-commerce and cloud computing (AWS)',
+    category: 'US Stocks',
+    risk: 'high',
+    color: '#d97706',
+    allocation: 0,
+  },
+  {
+    key: 'JPM',
+    name: 'JPMorgan Chase',
+    ticker: 'JPM',
+    description: "America's largest bank by assets",
+    category: 'US Stocks',
+    risk: 'medium',
+    color: '#1d4ed8',
+    allocation: 0,
+  },
+  {
+    key: 'JNJ',
+    name: 'Johnson & Johnson',
+    ticker: 'JNJ',
+    description: 'Pharmaceuticals, medical devices and consumer health',
+    category: 'US Stocks',
+    risk: 'low',
+    color: '#dc2626',
+    allocation: 0,
+  },
+  {
+    key: 'KO',
+    name: 'Coca-Cola',
+    ticker: 'KO',
+    description: 'World-leading beverage brand',
+    category: 'US Stocks',
+    risk: 'low',
+    color: '#ef4444',
+    allocation: 0,
+  },
+  {
+    key: 'MCD',
+    name: "McDonald's",
+    ticker: 'MCD',
+    description: "World's largest fast-food chain",
+    category: 'US Stocks',
+    risk: 'low',
+    color: '#eab308',
+    allocation: 0,
+  },
+  {
+    key: 'GS',
+    name: 'Goldman Sachs',
+    ticker: 'GS',
+    description: 'Global investment banking and financial services',
+    category: 'US Stocks',
+    risk: 'high',
+    color: '#475569',
+    allocation: 0,
+  },
+  {
+    key: 'V',
+    name: 'Visa',
+    ticker: 'V',
+    description: 'Global payments network',
+    category: 'US Stocks',
+    risk: 'medium',
+    color: '#1e40af',
     allocation: 0,
   },
 ])
 
+// ─── Category filter ─────────────────────────────────────────────────────────
+
+const categoryFilter = ref<string>('All')
+
+const allCategories = computed(() => {
+  const cats = new Set(assets.value.map((a) => a.category))
+  return ['All', ...Array.from(cats)]
+})
+
+const filteredAssets = computed(() =>
+  categoryFilter.value === 'All'
+    ? assets.value
+    : assets.value.filter((a) => a.category === categoryFilter.value),
+)
+
 // ─── Configuration ───────────────────────────────────────────────────────────
 
-const startingCapital = ref(10000)
-const startYear = ref(2000)
-const endYear = ref(2023)
+// Starting capital is static at CHF 10,000
+const startingCapital = 10000
 
-const capitalOptions = [5000, 10000, 25000, 50000, 100000]
-const yearOptions = Array.from(
-  { length: AVAILABLE_YEARS.max - AVAILABLE_YEARS.min + 1 },
-  (_, i) => AVAILABLE_YEARS.min + i,
-)
+// Duration in years (5, 10, or 20)
+const durationOptions = [5, 10, 20]
+const selectedDuration = ref(10)
+
+// Derive start/end years from duration (always use the most recent data)
+const endYear = computed(() => AVAILABLE_YEARS.max)
+const startYear = computed(() => {
+  const candidate = AVAILABLE_YEARS.max - selectedDuration.value + 1
+  return Math.max(candidate, AVAILABLE_YEARS.min)
+})
 
 // ─── Portfolio derived state ─────────────────────────────────────────────────
 
@@ -106,9 +360,7 @@ const totalAllocation = computed(() =>
   assets.value.reduce((sum, a) => sum + a.allocation, 0),
 )
 
-const isValid = computed(
-  () => totalAllocation.value === 100 && startYear.value < endYear.value,
-)
+const isValid = computed(() => totalAllocation.value === 100)
 
 const riskScore = computed(() => {
   const weights = { low: 1, medium: 2, high: 3 }
@@ -155,47 +407,11 @@ const progressPercent = computed(() =>
   Math.round((liveSnapshots.value.length / totalYears.value) * 100),
 )
 
-// ─── Preset portfolios ───────────────────────────────────────────────────────
-
-interface Preset {
-  name: string
-  description: string
-  allocations: Partial<Record<string, number>>
-}
-
-const presets: Preset[] = [
-  {
-    name: 'All-Weather',
-    description: 'Balanced across asset classes for resilience',
-    allocations: { SMI: 20, BONDS_CHF: 30, GLOBAL_ETF: 25, REAL_ESTATE: 15, EMERGING_MARKETS: 0, CASH: 10 },
-  },
-  {
-    name: 'Growth',
-    description: 'Equity-heavy for maximum long-term growth',
-    allocations: { SMI: 20, BONDS_CHF: 5, GLOBAL_ETF: 50, REAL_ESTATE: 5, EMERGING_MARKETS: 20, CASH: 0 },
-  },
-  {
-    name: 'Conservative',
-    description: 'Capital preservation with low volatility',
-    allocations: { SMI: 10, BONDS_CHF: 50, GLOBAL_ETF: 10, REAL_ESTATE: 10, EMERGING_MARKETS: 0, CASH: 20 },
-  },
-  {
-    name: 'All-In Stocks',
-    description: 'Maximum risk — 100% equities',
-    allocations: { SMI: 10, BONDS_CHF: 0, GLOBAL_ETF: 60, REAL_ESTATE: 0, EMERGING_MARKETS: 30, CASH: 0 },
-  },
-]
-
-function applyPreset(preset: Preset) {
-  assets.value.forEach((a) => {
-    a.allocation = preset.allocations[a.key] ?? 0
-  })
-}
-
 // ─── Actions ─────────────────────────────────────────────────────────────────
 
-function updateAllocation(index: number, value: number) {
-  assets.value[index]!.allocation = Math.max(0, Math.min(100, value))
+function updateAllocation(key: string, value: number) {
+  const asset = assets.value.find((a) => a.key === key)
+  if (asset) asset.allocation = Math.max(0, Math.min(100, value))
 }
 
 async function startBattle() {
@@ -210,12 +426,12 @@ async function startBattle() {
   try {
     const result = await runSimulation(
       assets.value,
-      startingCapital.value,
+      startingCapital,
       startYear.value,
       endYear.value,
       async (snapshot) => {
-        // Animate one year at a time with a delay
-        await new Promise((resolve) => setTimeout(resolve, 180))
+        // Animate one year at a time — 2 seconds per year
+        await new Promise((resolve) => setTimeout(resolve, 2000))
         liveSnapshots.value = [...liveSnapshots.value, snapshot]
         await nextTick()
       },
@@ -326,22 +542,6 @@ const resultInsights = computed(() => {
       <!-- ═══════════════════════════════════════════════════════════════════ -->
       <template v-if="phase === 'configure'">
 
-        <!-- Preset quick-starts -->
-        <section class="config-section">
-          <h3 class="section-label">Quick Start Presets</h3>
-          <div class="presets-grid">
-            <button
-              v-for="preset in presets"
-              :key="preset.name"
-              class="preset-btn"
-              @click="applyPreset(preset)"
-            >
-              <span class="preset-name">{{ preset.name }}</span>
-              <span class="preset-desc">{{ preset.description }}</span>
-            </button>
-          </div>
-        </section>
-
         <!-- Asset sliders -->
         <section class="config-section portfolio-builder">
           <div class="allocation-header">
@@ -357,9 +557,22 @@ const resultInsights = computed(() => {
             </div>
           </div>
 
+          <!-- Category filter buttons -->
+          <div class="category-filter">
+            <button
+              v-for="cat in allCategories"
+              :key="cat"
+              class="category-btn"
+              :class="{ 'category-btn--active': categoryFilter === cat }"
+              @click="categoryFilter = cat"
+            >
+              {{ cat }}
+            </button>
+          </div>
+
           <div class="assets-list">
             <div
-              v-for="(asset, i) in assets"
+              v-for="asset in filteredAssets"
               :key="asset.key"
               class="asset-row"
             >
@@ -367,12 +580,7 @@ const resultInsights = computed(() => {
                 <div class="asset-dot" :style="{ background: asset.color }" />
                 <div>
                   <span class="asset-name">{{ asset.name }}</span>
-                  <span class="asset-meta">{{ asset.category }} &middot;
-                    <span
-                      class="risk-chip"
-                      :class="`risk-chip--${asset.risk}`"
-                    >{{ asset.risk }} risk</span>
-                  </span>
+                  <span class="asset-meta">{{ asset.category }}</span>
                 </div>
               </div>
               <div class="asset-control">
@@ -383,7 +591,7 @@ const resultInsights = computed(() => {
                   step="5"
                   :value="asset.allocation"
                   :style="{ accentColor: asset.color }"
-                  @input="updateAllocation(i, parseInt(($event.target as HTMLInputElement).value))"
+                  @input="updateAllocation(asset.key, parseInt(($event.target as HTMLInputElement).value))"
                 />
                 <span class="asset-percent">{{ asset.allocation }}%</span>
               </div>
@@ -429,36 +637,23 @@ const resultInsights = computed(() => {
         <section class="config-section settings-row">
           <div class="setting-group">
             <label class="setting-label">Starting Capital</label>
-            <div class="btn-group">
-              <button
-                v-for="cap in capitalOptions"
-                :key="cap"
-                class="toggle-btn"
-                :class="{ 'toggle-btn--active': startingCapital === cap }"
-                @click="startingCapital = cap"
-              >
-                {{ cap.toLocaleString('de-CH') }}
-              </button>
-            </div>
+            <div class="static-capital">CHF 10,000</div>
           </div>
 
           <div class="setting-group">
-            <label class="setting-label">Historical Period</label>
-            <div class="year-range">
-              <select v-model="startYear" class="year-select">
-                <option v-for="y in yearOptions.slice(0, -1)" :key="y" :value="y">{{ y }}</option>
-              </select>
-              <span class="year-separator">to</span>
-              <select v-model="endYear" class="year-select">
-                <option
-                  v-for="y in yearOptions"
-                  :key="y"
-                  :value="y"
-                  :disabled="y <= startYear"
-                >{{ y }}</option>
-              </select>
-              <span class="year-duration">({{ endYear - startYear }} years)</span>
+            <label class="setting-label">Simulation Period</label>
+            <div class="btn-group">
+              <button
+                v-for="dur in durationOptions"
+                :key="dur"
+                class="toggle-btn"
+                :class="{ 'toggle-btn--active': selectedDuration === dur }"
+                @click="selectedDuration = dur"
+              >
+                {{ dur }} years
+              </button>
             </div>
+            <span class="year-duration">{{ startYear }} – {{ endYear }}</span>
           </div>
         </section>
 
@@ -471,11 +666,8 @@ const resultInsights = computed(() => {
           <template v-if="isValid">
             &#9654; Start AutoBattle
           </template>
-          <template v-else-if="totalAllocation !== 100">
-            Allocate {{ allocationRemaining > 0 ? allocationRemaining + '% more' : (100 - totalAllocation) * -1 + '% over' }}
-          </template>
           <template v-else>
-            Select a valid year range
+            Allocate {{ allocationRemaining > 0 ? allocationRemaining + '% more' : Math.abs(100 - totalAllocation) + '% over limit' }}
           </template>
         </button>
 
@@ -796,43 +988,44 @@ const resultInsights = computed(() => {
   margin-bottom: 0.75rem;
 }
 
-/* Presets */
-.presets-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0.75rem;
+/* Category filter */
+.category-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
 }
 
-.preset-btn {
-  background: var(--color-surface);
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 0.75rem 1rem;
-  text-align: left;
+.category-btn {
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--color-background-mute);
+  color: var(--color-text-secondary);
+  border: 1.5px solid transparent;
   transition: all var(--transition-fast);
   cursor: pointer;
 }
 
-.preset-btn:hover {
-  border-color: var(--color-primary);
+.category-btn:hover {
   background: var(--color-primary-light);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  color: var(--color-secondary);
 }
 
-.preset-name {
-  display: block;
+.category-btn--active {
+  background: var(--color-primary);
+  color: var(--color-secondary);
+  border-color: var(--color-primary-hover);
+}
+
+/* Static capital display */
+.static-capital {
+  font-size: 1.1rem;
   font-weight: 700;
-  font-size: 0.875rem;
   color: var(--color-heading);
-  margin-bottom: 0.2rem;
-}
-
-.preset-desc {
-  display: block;
-  font-size: 0.72rem;
-  color: var(--color-text-muted);
-  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+  padding: 0.35rem 0;
 }
 
 /* Portfolio builder */
@@ -917,18 +1110,6 @@ const resultInsights = computed(() => {
   font-size: 0.7rem;
   color: var(--color-text-muted);
 }
-
-.risk-chip {
-  padding: 0.1rem 0.4rem;
-  border-radius: var(--radius-sm);
-  font-weight: 600;
-  font-size: 0.65rem;
-  text-transform: uppercase;
-}
-
-.risk-chip--low { background: #d1fae5; color: #065f46; }
-.risk-chip--medium { background: #fef3c7; color: #92400e; }
-.risk-chip--high { background: #fee2e2; color: #991b1b; }
 
 .asset-control {
   display: flex;
@@ -1070,34 +1251,6 @@ const resultInsights = computed(() => {
   background: var(--color-primary);
   color: var(--color-secondary);
   border-color: var(--color-primary-hover);
-}
-
-.year-range {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.year-select {
-  padding: 0.35rem 0.6rem;
-  border-radius: var(--radius-md);
-  border: 1.5px solid var(--color-border);
-  background: var(--color-background);
-  color: var(--color-text);
-  font-size: 0.85rem;
-  font-family: inherit;
-  cursor: pointer;
-}
-
-.year-select:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-.year-separator {
-  font-size: 0.8rem;
-  color: var(--color-text-muted);
 }
 
 .year-duration {

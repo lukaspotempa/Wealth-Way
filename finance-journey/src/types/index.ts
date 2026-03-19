@@ -2,7 +2,25 @@ export type AgeGroup = 'junior' | 'adolescent' | 'grown-up' | 'senior'
 
 // ─── AutoBattle Types ────────────────────────────────────────────────────────
 
-export type AssetKey = 'SMI' | 'BONDS_CHF' | 'GLOBAL_ETF' | 'REAL_ESTATE' | 'EMERGING_MARKETS' | 'CASH'
+// Equity indices
+export type IndexAssetKey = 'SMI_INDEX' | 'EUROSTOXX50' | 'DJIA_INDEX' | 'NIKKEI' | 'DAX'
+// Bond assets
+export type BondAssetKey = 'SWISS_BOND_TRI' | 'BLOOMBERG_GLOBAL_AGG'
+// Commodity
+export type CommodityAssetKey = 'GOLD_CHF'
+// SMI single stocks
+export type SMIStockKey =
+  | 'LOGN' | 'AMRZ' | 'ALC' | 'UBSG' | 'SREN' | 'CFR' | 'SLHN' | 'PGHN'
+  | 'LONN' | 'KNIN' | 'SIKA' | 'NESN' | 'HOLN' | 'ROG' | 'ABBN' | 'NOVN'
+  | 'ZURN' | 'GIVN' | 'GEBN' | 'SCMN'
+// DJIA single stocks
+export type DJIAStockKey =
+  | 'GS' | 'CAT' | 'MSFT' | 'HD' | 'SHW' | 'AMGN' | 'AXP' | 'MCD' | 'V'
+  | 'JPM' | 'TRV' | 'UNH' | 'IBM' | 'AAPL' | 'JNJ' | 'BA' | 'HON' | 'AMZN'
+  | 'CRM' | 'CVX' | 'NVDA' | 'MMM' | 'PG' | 'WMT' | 'MRK' | 'DIS' | 'KO'
+  | 'CSCO' | 'NKE' | 'VZ'
+
+export type AssetKey = IndexAssetKey | BondAssetKey | CommodityAssetKey | SMIStockKey | DJIAStockKey
 
 export type RiskLevel = 'low' | 'medium' | 'high'
 
