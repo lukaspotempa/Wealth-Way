@@ -1,7 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { createLobby, joinLobby, MultiplayerConnection } from '@/services/multiplayerService'
 import type { LobbyInfo, LobbyPlayer, ServerMessage } from '@/types/multiplayer'
+
+const props = withDefaults(defineProps<{
+  initialJoinCode?: string
+}>(), {
+  initialJoinCode: '',
+})
 
 const emit = defineEmits<{
   raceStarted: [connection: MultiplayerConnection, lobbyInfo: LobbyInfo, playerId: string, startYear: number, endYear: number]
@@ -11,6 +17,13 @@ const emit = defineEmits<{
 
 // Flag to prevent disconnecting the socket when handing off to MultiplayerRace
 let raceHasStarted = false
+
+onMounted(() => {
+  if (props.initialJoinCode) {
+    mode.value = 'join'
+    joinCode.value = props.initialJoinCode.toUpperCase()
+  }
+})
 
 // ── UI state ─────────────────────────────────────────────────────────────────
 type LobbyScreen = 'setup' | 'lobby' | 'configuring'
@@ -34,7 +47,7 @@ const portfolioSubmitted = ref<Set<string>>(new Set())
 const isHost = computed(() => lobbyInfo.value?.hostId === myPlayerId.value)
 const joinUrl = computed(() => {
   if (!lobbyInfo.value) return ''
-  return `${window.location.origin}/autobattle?join=${lobbyInfo.value.code}`
+  return `${window.location.origin}/?join=${lobbyInfo.value.code}`
 })
 const canStart = computed(() => (lobbyInfo.value?.players.length ?? 0) >= 1)
 const allSubmitted = computed(() => {
@@ -230,10 +243,6 @@ async function generateQR(url: string) {
               <span class="code-label">Room Code</span>
               <span class="code-value">{{ lobbyInfo?.code }}</span>
               <button class="copy-btn" @click="copyCode" title="Copy code">&#128203;</button>
-            </div>
-            <div class="mp-link-display">
-              <span class="link-url">{{ joinUrl }}</span>
-              <button class="copy-btn" @click="copyLink" title="Copy link">&#128203;</button>
             </div>
             <p class="share-hint">Scan QR or share code/link to invite friends</p>
           </div>

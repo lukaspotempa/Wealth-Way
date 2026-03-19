@@ -33,6 +33,7 @@ const phase = ref<Phase>('configure')
 // ─── App mode ─────────────────────────────────────────────────────────────────
 type AppMode = 'choose' | 'solo' | 'multiplayer'
 const appMode = ref<AppMode>('choose')
+const mpInitialJoinCode = ref('')
 const mpConnection = ref<MultiplayerConnection | null>(null)
 const mpLobbyInfo = ref<LobbyInfo | null>(null)
 const mpPlayerId = ref('')
@@ -46,6 +47,7 @@ const mpEndYear = ref(0)
 onMounted(() => {
   const joinCode = route.query.join as string | undefined
   if (joinCode) {
+    mpInitialJoinCode.value = joinCode
     appMode.value = 'multiplayer'
   }
 })
@@ -393,7 +395,7 @@ const assets = ref<AutoBattleAsset[]>([
 
 // ─── Category filter ─────────────────────────────────────────────────────────
 
-const categoryFilter = ref<string>('All')
+const categoryFilter = ref<string>('Indices')
 
 const allCategories = computed(() => {
   const cats = new Set(assets.value.map((a) => a.category))
@@ -1140,6 +1142,7 @@ const resultInsights = computed(() => {
       <template v-else-if="appMode === 'multiplayer'">
         <template v-if="!mpRaceActive">
           <MultiplayerLobby
+            :initial-join-code="mpInitialJoinCode"
             @race-started="handleRaceStarted"
             @configuring="handleMpConfiguring"
             @back="handleMpBack"
@@ -1163,7 +1166,7 @@ const resultInsights = computed(() => {
 
               <div class="category-filter">
                 <button
-                  v-for="cat in ['All', 'Indices', 'Bonds', 'Commodities', 'CH Stocks', 'US Stocks']"
+                  v-for="cat in ['Indices', 'Bonds', 'Commodities', 'CH Stocks', 'US Stocks']"
                   :key="cat"
                   class="category-btn"
                   :class="{ 'category-btn--active': categoryFilter === cat }"

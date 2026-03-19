@@ -296,7 +296,7 @@ const greeting = computed(() => {
 }
 
 .journey-header {
-  padding: 2rem 0 1rem;
+  padding: 1rem 0 1rem;
   background: var(--color-background);
 }
 
