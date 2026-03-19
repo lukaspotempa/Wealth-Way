@@ -94,11 +94,11 @@ function buildChartData(
         label: 'S&P 500',
         data: sp500Data,
         borderColor: SP500_COLOR,
-        backgroundColor: `${SP500_COLOR}11`,
-        borderWidth: 2,
-        pointRadius: 2,
-        pointHoverRadius: 6,
-        borderDash: [6, 3],
+        backgroundColor: `${SP500_COLOR}`,
+        borderWidth: 3,
+        pointRadius: 4,
+        pointHoverRadius: 7,
+        pointBackgroundColor: `${SP500_COLOR}`,
         fill: false,
         tension: 0.3,
         order: 2,
@@ -107,24 +107,23 @@ function buildChartData(
         label: 'MSCI World',
         data: msciData,
         borderColor: MSCI_COLOR,
-        backgroundColor: `${MSCI_COLOR}11`,
-        borderWidth: 2,
-        pointRadius: 2,
-        pointHoverRadius: 6,
-        borderDash: [4, 4],
+        backgroundColor: `${MSCI_COLOR}`,
+        borderWidth: 3,
+        pointRadius: 4,
+        pointHoverRadius: 7,
         fill: false,
         tension: 0.3,
         order: 3,
       },
       {
-        label: 'Inflation (purchasing power lost)',
+        label: 'Required to keep purchasing power',
         data: inflationData,
         borderColor: INFLATION_COLOR,
-        backgroundColor: `${INFLATION_COLOR}11`,
-        borderWidth: 1.5,
-        pointRadius: 1,
-        pointHoverRadius: 4,
-        borderDash: [2, 4],
+        backgroundColor: `${INFLATION_COLOR}`,
+        borderWidth: 3,
+        pointRadius: 2,
+        pointHoverRadius: 7,
+        borderDash: [3, 6],
         fill: false,
         tension: 0.3,
         order: 4,
@@ -172,7 +171,26 @@ function buildChartOptions(dark: boolean): ChartOptions<'line'> {
           font: { size: 11, family: 'Inter, sans-serif' },
           padding: 16,
           usePointStyle: true,
-          pointStyleWidth: 20,
+          pointStyle: 'circle',
+          boxWidth: 10,
+          boxHeight: 10,
+          generateLabels: (chart) => {
+            const defaultLabels = Chart.defaults.plugins.legend.labels.generateLabels(chart)
+            return defaultLabels.map((label) => {
+              const dataset = chart.data.datasets[label.datasetIndex ?? 0] as any
+              const color = Array.isArray(dataset?.borderColor)
+                ? dataset.borderColor[0]
+                : (dataset?.borderColor ?? label.fillStyle)
+
+              return {
+                ...label,
+                pointStyle: 'circle',
+                fillStyle: color,
+                strokeStyle: color,
+                lineWidth: 0,
+              }
+            })
+          },
         },
       },
       tooltip: {

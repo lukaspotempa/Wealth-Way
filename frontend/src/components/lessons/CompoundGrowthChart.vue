@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { Chart, registerables } from 'chart.js'
-import { calculateChildrenSavings } from '@/services/lessonData'
+import { calculateCompoundGrowth } from '@/services/lessonData'
 import { useTheme } from '@/composables/useTheme'
 
 Chart.register(...registerables)
@@ -9,64 +9,51 @@ Chart.register(...registerables)
 const { isDark } = useTheme()
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const chartInstance = ref<Chart | null>(null)
-const data = calculateChildrenSavings()
+const growth = calculateCompoundGrowth()
 
-function getChartColors() {
+function getColors() {
   return {
-    gridColor: isDark.value ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+    gridColor: isDark.value ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)',
     textColor: isDark.value ? '#e5e7eb' : '#374151',
+    tooltipBg: isDark.value ? '#1f2937' : '#ffffff',
+    tooltipTitle: isDark.value ? '#f9fafb' : '#111827',
+    tooltipBody: isDark.value ? '#e5e7eb' : '#374151',
+    tooltipBorder: isDark.value ? '#374151' : '#e5e7eb',
   }
 }
 
 function createChart() {
   if (!canvasRef.value) return
-  if (chartInstance.value) {
-    chartInstance.value.destroy()
-  }
+  chartInstance.value?.destroy()
 
-  const colors = getChartColors()
+  const c = getColors()
 
   chartInstance.value = new Chart(canvasRef.value, {
     type: 'line',
     data: {
-      labels: data.map(d => d.year.toString()),
-      datasets: [
-        {
-          label: 'Sam - Piggy Bank',
-          data: data.map(d => d.child2Savings),
-          borderColor: '#6b7280',
-          backgroundColor: 'rgba(107, 114, 128, 0.1)',
-          borderWidth: 2,
-          fill: true,
-          tension: 0.3,
-          pointRadius: 5,
-          pointBackgroundColor: '#6b7280',
-        },
-        {
-          label: 'Jordan - Invested Portfolio',
-          data: data.map(d => d.child3Portfolio),
-          borderColor: '#FFCB00',
-          backgroundColor: 'rgba(255, 203, 0, 0.1)',
-          borderWidth: 3,
-          fill: true,
-          tension: 0.3,
-          pointRadius: 5,
-          pointBackgroundColor: '#FFCB00',
-        },
-      ],
+      labels: growth.labels,
+      datasets: growth.datasets.map((ds) => ({
+        label: ds.label,
+        data: ds.values,
+        borderColor: ds.color,
+        backgroundColor: ds.color + '18',
+        borderWidth: ds.color === '#FFCB00' ? 3 : 2,
+        fill: ds.color === '#FFCB00',
+        tension: 0.4,
+        pointRadius: 0,
+        pointHoverRadius: 5,
+        pointHoverBackgroundColor: ds.color,
+      })),
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      interaction: {
-        intersect: false,
-        mode: 'index',
-      },
+      interaction: { intersect: false, mode: 'index' },
       plugins: {
         legend: {
           position: 'bottom',
           labels: {
-            color: colors.textColor,
+            color: c.textColor,
             padding: 16,
             usePointStyle: true,
             pointStyle: 'circle',
@@ -93,28 +80,32 @@ function createChart() {
           },
         },
         tooltip: {
-          backgroundColor: isDark.value ? '#1f2937' : '#ffffff',
-          titleColor: isDark.value ? '#f9fafb' : '#111827',
-          bodyColor: isDark.value ? '#e5e7eb' : '#374151',
-          borderColor: isDark.value ? '#374151' : '#e5e7eb',
+          backgroundColor: c.tooltipBg,
+          titleColor: c.tooltipTitle,
+          bodyColor: c.tooltipBody,
+          borderColor: c.tooltipBorder,
           borderWidth: 1,
           padding: 12,
           callbacks: {
-            label: (ctx) => `${ctx.dataset.label}: $${(ctx.parsed.y ?? 0).toFixed(2)}`,
+            label: (ctx) => `${ctx.dataset.label}: CHF ${(ctx.parsed.y as number).toLocaleString('de-CH')}`,
           },
         },
       },
       scales: {
         x: {
-          grid: { color: colors.gridColor },
-          ticks: { color: colors.textColor, font: { family: 'Inter' } },
+          grid: { color: c.gridColor },
+          ticks: {
+            color: c.textColor,
+            font: { family: 'Inter', size: 11 },
+            maxTicksLimit: 7,
+          },
         },
         y: {
-          grid: { color: colors.gridColor },
+          grid: { color: c.gridColor },
           ticks: {
-            color: colors.textColor,
+            color: c.textColor,
             font: { family: 'Inter' },
-            callback: (value) => `$${value}`,
+            callback: (v) => `CHF ${Number(v).toLocaleString('de-CH')}`,
           },
         },
       },
@@ -122,13 +113,7 @@ function createChart() {
   })
 }
 
-onMounted(() => {
-  createChart()
-})
-
-// We expose data so parent can access final values
-const finalData = computed(() => data[data.length - 1])
-defineExpose({ finalData })
+onMounted(() => createChart())
 </script>
 
 <template>
@@ -136,27 +121,24 @@ defineExpose({ finalData })
     <div class="chart-container">
       <canvas ref="canvasRef" />
     </div>
-    <p class="chart-subtitle">data based on S&P 500 returns from 2012 to 2018, with 2% annual inflation rate</p>
+    <p class="chart-subtitle">Starting capital: CHF 10,000 · No additional contributions · Returns are approximate averages</p>
   </div>
 </template>
 
 <style scoped>
-.chart-wrapper {
-  width: 100%;
-}
+.chart-wrapper { width: 100%; }
 
 .chart-container {
   position: relative;
-  height: 350px;
+  height: 320px;
   width: 100%;
 }
 
 .chart-subtitle {
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--color-text-muted);
   margin-top: 0.75rem;
   font-style: italic;
-  text-transform: lowercase;
 }
 </style>

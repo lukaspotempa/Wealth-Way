@@ -58,12 +58,12 @@ export const useJourneyStore = defineStore('journey', () => {
       },
       {
         id: 'lesson-2',
-        title: 'The Stock Market',
-        description: 'Discover how the stock market works and why companies go public',
+        title: 'Time in Market',
+        description: 'Learn why long-term investing usually beats trying to time short-term market moves',
         type: 'lesson',
         status: 'locked',
         position: { x: 3, y: 1 },
-        route: '/journey',
+        route: '/lesson/2',
       },
       {
         id: 'lesson-3',
@@ -72,7 +72,7 @@ export const useJourneyStore = defineStore('journey', () => {
         type: 'lesson',
         status: 'locked',
         position: { x: 4, y: 0 },
-        route: '/journey',
+        route: '/lesson/3',
       },
       {
         id: 'checkpoint-2',

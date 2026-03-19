@@ -4,6 +4,7 @@ import { useUserStore } from '@/stores/user'
 import { useJourneyStore } from '@/stores/journey'
 import { useRoute } from 'vue-router'
 import { computed } from 'vue'
+import { Swords } from 'lucide-vue-next'
 
 const { isDark, toggleTheme } = useTheme()
 const userStore = useUserStore()
@@ -20,7 +21,7 @@ const showProgress = computed(() => {
     <div class="header-inner">
       <router-link to="/" class="logo">
         <img src="/postfinance_logo.png" alt="Logo" class="logo-img" />
-        <span class="logo-text">Wealth Manager Arena: The Investing Game</span>
+        <span class="logo-text">The Wealthy Way</span>
       </router-link>
 
       <div class="header-right">
@@ -32,7 +33,7 @@ const showProgress = computed(() => {
           title="Open AutoBattle Portfolio Mode"
           style="user-select: none;"
         >
-          <span class="autobattle-link-icon">&#9876;</span>
+          <Swords :size="20" />
           <span class="autobattle-link-text">Portfolio Battle</span>
         </router-link>
 

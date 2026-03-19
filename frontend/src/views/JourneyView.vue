@@ -120,14 +120,14 @@ const greeting = computed(() => {
       <div class="autobattle-banner-inner container">
         <div class="autobattle-banner-text">
           <span class="autobattle-banner-badge">New</span>
-          <strong>Portfolio Battle Mode</strong>
+          <strong>AutoBattle Mode</strong>
           <span class="autobattle-banner-sub">
             Build a real portfolio and battle 24 years of historical market data.
             Learn why Sharpe Ratio beats raw return.
           </span>
         </div>
         <router-link to="/autobattle" class="autobattle-banner-btn">
-          Play Portfolio Battle &#8594;
+          Play AutoBattle &#8594;
         </router-link>
       </div>
     </div>-->
@@ -273,7 +273,7 @@ const greeting = computed(() => {
             <span class="tooltip-type" :style="{ backgroundColor: selectedNode.color }">{{ selectedNode.type }}</span>
           </div>
           <p class="tooltip-desc">{{ selectedNode.description }}</p>
-          <div v-if="selectedNode.type !== 'checkpoint'" class="tooltip-actions">
+          <div class="tooltip-actions">
             <button class="tooltip-btn" @click="startNode(selectedNode)">
               Start {{ selectedNode.type === 'challenge' ? 'Challenge' : selectedNode.type === 'quiz' ? 'Quiz' : 'Lesson' }}
             </button>

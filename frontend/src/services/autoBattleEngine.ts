@@ -18,7 +18,7 @@
  * MSCI World proxy: EuroStoxx50 price-return (in EUR).
  */
 
-import type { AutoBattleAsset, AutoBattleResult, YearlyPortfolioSnapshot } from '@/types'
+import type { AutoBattleAsset, AssetPerformance, AutoBattleResult, YearlyPortfolioSnapshot } from '@/types'
 import {
   calculateSharpeRatio,
   calculateMaxDrawdown,
@@ -341,6 +341,15 @@ export async function runSimulation(
 
   const snapshots: YearlyPortfolioSnapshot[] = []
 
+  // Per-asset compounding value tracker (tracks the portion of capital each asset holds)
+  // Starting value for each asset = startingCapital * (allocation / 100)
+  const assetValues: Record<string, number> = {}
+  for (const asset of assets) {
+    if (asset.allocation > 0) {
+      assetValues[asset.key] = startingCapital * (asset.allocation / 100)
+    }
+  }
+
   for (let i = 0; i < years.length; i++) {
     const year = years[i]!
     const yearStr = String(year)
@@ -353,6 +362,8 @@ export async function runSimulation(
       if (!assetReturns) continue
       const assetReturn = assetReturns[yearStr] ?? 0
       portfolioYearReturn += (asset.allocation / 100) * assetReturn
+      // Compound each asset's slice independently
+      assetValues[asset.key] = (assetValues[asset.key] ?? 0) * (1 + assetReturn)
     }
 
     // ── Update values ────────────────────────────────────────────────────────
@@ -398,6 +409,26 @@ export async function runSimulation(
   const overallSharp = calculateSharpeRatio(portfolioAnnualReturns, riskFreeRateHistory)
   const maxDrawdown = calculateMaxDrawdown(allPortfolioValues)
 
+  // ── Per-asset performance breakdown ──────────────────────────────────────
+  const assetPerformances: AssetPerformance[] = assets
+    .filter((a) => a.allocation > 0)
+    .map((a) => {
+      const initialSlice = startingCapital * (a.allocation / 100)
+      const finalSlice = assetValues[a.key] ?? initialSlice
+      const totalReturnDecimal = (finalSlice - initialSlice) / initialSlice
+      const absoluteGainCHF = Math.round((finalSlice - initialSlice) * 100) / 100
+      return {
+        key: a.key,
+        name: a.name,
+        ticker: a.ticker,
+        color: a.color,
+        allocation: a.allocation,
+        totalReturnDecimal,
+        absoluteGainCHF,
+      } satisfies AssetPerformance
+    })
+    .sort((a, b) => b.totalReturnDecimal - a.totalReturnDecimal)
+
   return {
     startYear,
     endYear,
@@ -413,6 +444,7 @@ export async function runSimulation(
     beatSP500: finalPortfolioValue > finalSP500Value,
     beatMSCI: finalPortfolioValue > finalMSCIValue,
     beatInflation: finalPortfolioValue > inflationValue,
+    assetPerformances,
   }
 }
 
