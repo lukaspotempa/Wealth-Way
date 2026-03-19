@@ -33,6 +33,7 @@ const phase = ref<Phase>('configure')
 // ─── App mode ─────────────────────────────────────────────────────────────────
 type AppMode = 'choose' | 'solo' | 'multiplayer'
 const appMode = ref<AppMode>('choose')
+const mpInitialJoinCode = ref('')
 const mpConnection = ref<MultiplayerConnection | null>(null)
 const mpLobbyInfo = ref<LobbyInfo | null>(null)
 const mpPlayerId = ref('')
@@ -46,6 +47,7 @@ const mpEndYear = ref(0)
 onMounted(() => {
   const joinCode = route.query.join as string | undefined
   if (joinCode) {
+    mpInitialJoinCode.value = joinCode
     appMode.value = 'multiplayer'
   }
 })
@@ -1140,6 +1142,7 @@ const resultInsights = computed(() => {
       <template v-else-if="appMode === 'multiplayer'">
         <template v-if="!mpRaceActive">
           <MultiplayerLobby
+            :initial-join-code="mpInitialJoinCode"
             @race-started="handleRaceStarted"
             @configuring="handleMpConfiguring"
             @back="handleMpBack"

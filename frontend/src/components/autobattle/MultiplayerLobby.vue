@@ -1,7 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { createLobby, joinLobby, MultiplayerConnection } from '@/services/multiplayerService'
 import type { LobbyInfo, LobbyPlayer, ServerMessage } from '@/types/multiplayer'
+
+const props = withDefaults(defineProps<{
+  initialJoinCode?: string
+}>(), {
+  initialJoinCode: '',
+})
 
 const emit = defineEmits<{
   raceStarted: [connection: MultiplayerConnection, lobbyInfo: LobbyInfo, playerId: string, startYear: number, endYear: number]
@@ -11,6 +17,13 @@ const emit = defineEmits<{
 
 // Flag to prevent disconnecting the socket when handing off to MultiplayerRace
 let raceHasStarted = false
+
+onMounted(() => {
+  if (props.initialJoinCode) {
+    mode.value = 'join'
+    joinCode.value = props.initialJoinCode.toUpperCase()
+  }
+})
 
 // ── UI state ─────────────────────────────────────────────────────────────────
 type LobbyScreen = 'setup' | 'lobby' | 'configuring'

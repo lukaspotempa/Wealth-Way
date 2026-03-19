@@ -53,7 +53,7 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   // Multiplayer join links arrive as /?join=CODE (root URL safe for static hosts)
-  if (to.query.join) {
+  if (to.query.join && to.path !== '/autobattle') {
     return { path: '/autobattle', query: { join: to.query.join } }
   }
 
