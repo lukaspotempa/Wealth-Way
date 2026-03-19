@@ -1,0 +1,544 @@
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { BookOpen, HelpCircle, Flag, Swords, Check, Lock } from 'lucide-vue-next'
+import { useJourneyStore } from '@/stores/journey'
+import { useUserStore } from '@/stores/user'
+import type { JourneyNode } from '@/types'
+import BarryTheBull from '@/components/ui/BarryTheBull.vue'
+
+const router = useRouter()
+const journeyStore = useJourneyStore()
+const userStore = useUserStore()
+
+const mapContainer = ref<HTMLElement | null>(null)
+const isLoaded = ref(false)
+
+onMounted(() => {
+  setTimeout(() => {
+    isLoaded.value = true
+  }, 100)
+})
+
+const nodeTypeIcons: Record<string, any> = {
+  lesson: BookOpen,
+  quiz: HelpCircle,
+  checkpoint: Flag,
+  challenge: Swords,
+}
+
+const nodeTypeColors: Record<string, string> = {
+  lesson: 'var(--color-primary)',
+  quiz: 'var(--color-info)',
+  checkpoint: 'var(--color-success)',
+  challenge: 'var(--color-error)',
+}
+
+// Canvas dimensions
+const W = 320
+const H = 720
+
+// Map store nodes to SVG map nodes
+const svgNodes = computed(() => {
+  const sourceNodes = journeyStore.nodes
+  const total = sourceNodes.length
+
+  return sourceNodes.map((node, i) => {
+    // Generate sine/S-curve mapping exactly as journey.vue did
+    const mapY = (i + 0.6) / (total + 0.2) // spread evenly top to bottom
+    const mapX = 0.5 + Math.sin(i * 1.4) * 0.35 // sine wave side to side
+
+    const isUnlocked = node.status !== 'locked'
+    const isCompleted = node.status === 'completed'
+    const isCurrent = node.status === 'available'
+    const color = nodeTypeColors[node.type] || 'var(--color-primary)'
+    const icon = nodeTypeIcons[node.type] || BookOpen
+
+    return {
+      ...node,
+      px: mapX * W,
+      py: mapY * H,
+      mapX,
+      mapY,
+      isUnlocked,
+      isCompleted,
+      isCurrent,
+      color,
+      icon,
+    }
+  })
+})
+
+const selectedNode = ref<any | null>(null)
+
+// Build SVG path connecting all nodes in order
+function buildPath(): string {
+  const pts = svgNodes.value.map((n) => ({ x: n.px, y: n.py }))
+  if (pts.length < 2) return ''
+
+  let d = `M ${pts[0]!.x} ${pts[0]!.y}`
+  for (let i = 1; i < pts.length; i++) {
+    const prev = pts[i - 1]!
+    const curr = pts[i]!
+    const midY = (prev.y + curr.y) / 2
+    d += ` C ${prev.x} ${midY}, ${curr.x} ${midY}, ${curr.x} ${curr.y}`
+  }
+  return d
+}
+
+function navigateToNode(node: any) {
+  if (node.status === 'locked') return
+  if (selectedNode.value?.id === node.id) {
+    selectedNode.value = null
+  } else {
+    selectedNode.value = node
+  }
+}
+
+function startNode(node: JourneyNode) {
+  router.push(node.route)
+}
+
+const greeting = computed(() => {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good morning'
+  if (hour < 18) return 'Good afternoon'
+  return 'Good evening'
+})
+</script>
+
+<template>
+  <div class="journey-view">
+    <div class="journey-header">
+      <div class="container">
+        <h1>{{ greeting }}, {{ userStore.displayName }}</h1>
+        <p class="journey-subtitle">Continue your path to financial independence</p>
+      </div>
+    </div>
+
+    <!-- AutoBattle call-to-action banner 
+    <div class="autobattle-banner">
+      <div class="autobattle-banner-inner container">
+        <div class="autobattle-banner-text">
+          <span class="autobattle-banner-badge">New</span>
+          <strong>AutoBattle Mode</strong>
+          <span class="autobattle-banner-sub">
+            Build a real portfolio and battle 24 years of historical market data.
+            Learn why Sharpe Ratio beats raw return.
+          </span>
+        </div>
+        <router-link to="/autobattle" class="autobattle-banner-btn">
+          Play AutoBattle &#8594;
+        </router-link>
+      </div>
+    </div>-->
+
+    <div class="journey-map-wrapper" @click="selectedNode = null">
+      <div ref="mapContainer" class="journey-map map-container" :class="{ 'journey-map--loaded': isLoaded }">
+        <div class="svg-container" :style="{ width: W + 'px', height: H + 'px', position: 'relative' }">
+          <svg
+            :viewBox="`0 0 ${W} ${H}`"
+            :width="W"
+            :height="H"
+            class="journey-svg"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <!-- Background path (full, dim) -->
+          <path
+            :d="buildPath()"
+            fill="none"
+            stroke="rgba(42, 74, 106, 0.6)"
+            stroke-width="6"
+            stroke-linecap="round"
+            stroke-dasharray="12 8"
+          />
+
+          <!-- Completed path overlay (solid gold) -->
+          <path
+            :d="buildPath()"
+            fill="none"
+            stroke="var(--color-primary)"
+            stroke-width="6"
+            stroke-linecap="round"
+            opacity="0"
+          />
+
+          <!-- Nodes -->
+          <g
+            v-for="node in svgNodes"
+            :key="node.id"
+            class="node-group"
+            :class="{
+              unlocked: node.isUnlocked,
+              locked: !node.isUnlocked,
+              completed: node.isCompleted,
+              current: node.isCurrent,
+            }"
+            @click.stop="navigateToNode(node)"
+            style="cursor: pointer"
+          >
+            <!-- Glow ring for current node -->
+            <circle
+              v-if="node.isCurrent"
+              :cx="node.px"
+              :cy="node.py"
+              r="30"
+              :fill="node.color"
+              opacity="0.15"
+              class="pulse-ring"
+            />
+            <circle
+              v-if="node.isCurrent"
+              :cx="node.px"
+              :cy="node.py"
+              r="24"
+              :fill="node.color"
+              opacity="0.1"
+            />
+
+            <!-- Main circle -->
+            <circle
+              :cx="node.px"
+              :cy="node.py"
+              r="22"
+              :fill="node.isCompleted ? node.color : node.isUnlocked ? 'var(--color-surface)' : 'var(--color-background-mute)'"
+              :stroke="node.isUnlocked ? node.color : 'var(--color-border)'"
+              stroke-width="3"
+              class="node-circle"
+              :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
+            />
+
+            <!-- Icon / lock -->
+            <component
+              v-if="node.isCompleted"
+              :is="Check"
+              :x="node.px - 12"
+              :y="node.py - 12"
+              :size="24"
+              color="white"
+              class="node-icon-svg"
+              :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
+            />
+            <component
+              v-else-if="node.isUnlocked"
+              :is="node.icon"
+              :x="node.px - 12"
+              :y="node.py - 12"
+              :size="24"
+              color="var(--color-secondary)"
+              class="node-icon-svg"
+              :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
+            />
+            <component
+              v-else
+              :is="Lock"
+              :x="node.px - 12"
+              :y="node.py - 12"
+              :size="24"
+              color="black"
+              opacity="0.3"
+              class="node-icon-svg"
+              :style="{ transformOrigin: `${node.px}px ${node.py}px` }"
+            />
+
+            <!-- Label bubble -->
+            <g class="node-label">
+              <!-- Position label on alternating sides -->
+              <text
+                :x="node.mapX > 0.5 ? node.px - 32 : node.px + 32"
+                :y="node.py"
+                :text-anchor="node.mapX > 0.5 ? 'end' : 'start'"
+                dominant-baseline="middle"
+                font-size="11"
+                font-weight="700"
+                font-family="Nunito, sans-serif"
+                :fill="node.isUnlocked ? 'var(--color-heading)' : 'var(--color-text-muted)'"
+              >{{ node.title.length > 20 ? node.title.substring(0, 18) + '…' : node.title }}</text>
+            </g>
+          </g>
+        </svg>
+
+        <!-- Tooltip Preview -->
+        <div
+          v-if="selectedNode"
+          class="node-tooltip"
+          :class="{ 'tooltip-below': selectedNode.py < 180 }"
+          :style="{
+            left: selectedNode.px + 'px',
+            top: selectedNode.py + 'px',
+          }"
+          @click.stop
+        >
+          <div class="tooltip-header">
+            <h4>{{ selectedNode.title }}</h4>
+            <span class="tooltip-type" :style="{ backgroundColor: selectedNode.color }">{{ selectedNode.type }}</span>
+          </div>
+          <p class="tooltip-desc">{{ selectedNode.description }}</p>
+          <div class="tooltip-actions">
+            <button class="tooltip-btn" @click="startNode(selectedNode)">
+              Start {{ selectedNode.type === 'challenge' ? 'Challenge' : selectedNode.type === 'quiz' ? 'Quiz' : 'Lesson' }}
+            </button>
+          </div>
+          <div class="tooltip-arrow"></div>
+        </div>
+
+        </div> <!-- end svg-container -->
+      </div>
+    </div>
+
+    <!-- Barry Introduction -->
+    <BarryTheBull
+      v-if="journeyStore.progressPercent === 0"
+      text="Welcome! Start your first lesson by clicking on the flashing lesson node."
+      :time="8"
+    />
+  </div>
+</template>
+
+<style scoped>
+.journey-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.journey-header {
+  padding: 1rem 0 1rem;
+  background: var(--color-background);
+}
+
+.journey-header h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.journey-subtitle {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
+/* Map wrapper */
+.journey-map-wrapper {
+  flex: 1;
+  overflow: auto;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(255, 203, 0, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 70% 60%, rgba(0, 74, 90, 0.05) 0%, transparent 50%),
+    var(--color-background-soft);
+}
+
+.map-container {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0;
+  min-height: 800px;
+}
+
+.journey-svg {
+  overflow: visible;
+  max-width: 100%;
+}
+
+.node-group.unlocked .node-circle,
+.node-group.unlocked .node-icon-svg {
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+.node-group.unlocked:hover .node-circle,
+.node-group.unlocked:hover .node-icon-svg {
+  transform: scale(1.1);
+}
+
+.node-group.current .node-circle {
+  filter: drop-shadow(0 0 10px rgba(255,203,0,0.5));
+}
+
+.pulse-ring {
+  animation: pulse-svg 2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes pulse-svg {
+  0%, 100% { r: 28; opacity: 0.15; }
+  50% { r: 34; opacity: 0.08; }
+}
+
+.node-icon {
+  pointer-events: none;
+  user-select: none;
+}
+
+/* AutoBattle banner */
+.autobattle-banner {
+  background: var(--color-secondary);
+  padding: 0.75rem 0;
+  flex-shrink: 0;
+}
+
+.autobattle-banner-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.autobattle-banner-text {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.875rem;
+}
+
+.autobattle-banner-badge {
+  background: var(--color-primary);
+  color: var(--color-secondary);
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--radius-full);
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  flex-shrink: 0;
+}
+
+.autobattle-banner-text strong {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.autobattle-banner-sub {
+  color: rgba(255,255,255,0.7);
+}
+
+.autobattle-banner-btn {
+  background: var(--color-primary);
+  color: var(--color-secondary);
+  padding: 0.45rem 1.1rem;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.autobattle-banner-btn:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* Tooltip */
+.node-tooltip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 35px));
+  width: 240px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  box-shadow: var(--shadow-lg);
+  z-index: 10;
+  pointer-events: auto;
+  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.node-tooltip.tooltip-below {
+  transform: translate(-50%, 35px);
+  animation: popInBelow 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.node-tooltip .tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.node-tooltip h4 {
+  font-size: 1.05rem;
+  margin: 0;
+  color: var(--color-heading);
+  line-height: 1.2;
+}
+
+.node-tooltip .tooltip-type {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #fff;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-full);
+}
+
+.node-tooltip .tooltip-desc {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
+
+.node-tooltip .tooltip-actions {
+  display: flex;
+  justify-content: stretch;
+}
+
+.node-tooltip .tooltip-btn {
+  width: 100%;
+  background: var(--color-primary);
+  color: var(--color-secondary);
+  border: none;
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.node-tooltip .tooltip-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+/* Tooltip pointer arrow */
+.tooltip-arrow {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 14px;
+  height: 14px;
+  background: var(--color-surface);
+  border-right: 2px solid var(--color-border);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.node-tooltip.tooltip-below .tooltip-arrow {
+  top: -8px;
+  bottom: auto;
+  border-top: 2px solid var(--color-border);
+  border-left: 2px solid var(--color-border);
+  border-right: none;
+  border-bottom: none;
+}
+
+@keyframes popIn {
+  0% { opacity: 0; transform: translate(-50%, calc(-100% - 20px)) scale(0.9); }
+  100% { opacity: 1; transform: translate(-50%, calc(-100% - 35px)) scale(1); }
+}
+
+@keyframes popInBelow {
+  0% { opacity: 0; transform: translate(-50%, 20px) scale(0.9); }
+  100% { opacity: 1; transform: translate(-50%, 35px) scale(1); }
+}
+</style>
