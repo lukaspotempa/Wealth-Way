@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import type { AgeGroup, ExperienceLevel, FinancialGoal } from '@/types'
@@ -9,6 +9,23 @@ const userStore = useUserStore()
 
 const currentStep = ref(1)
 const totalSteps = 3
+
+const showIntro = ref(true)
+const isMovingDown = ref(false)
+const showSpeech = ref(false)
+
+onMounted(() => {
+  // Wait a moment before showing the speech bubble
+  setTimeout(() => {
+    showSpeech.value = true
+  }, 500)
+
+  // Fade out both Barry and his speech bubble simultaneously
+  setTimeout(() => {
+    showIntro.value = false
+    showSpeech.value = false
+  }, 3500)
+})
 
 const progress = computed(() => (currentStep.value / totalSteps) * 100)
 
@@ -112,7 +129,21 @@ function prevStep() {
 
 <template>
   <div class="onboarding">
-    <div class="onboarding-container">
+    <!-- Intro Screen -->
+    <transition name="fade">
+      <div v-if="showIntro" class="intro-screen">
+        <div class="barry-wrapper">
+          <transition name="pop">
+            <div v-if="showSpeech" class="speech-bubble">
+              So you want to invest huh?<br>First answer some of my questions.
+            </div>
+          </transition>
+          <img src="/bull_default.png" alt="Barry the Bull" class="barry-img-intro" />
+        </div>
+      </div>
+    </transition>
+
+    <div v-if="!showIntro" class="onboarding-container">
       <!-- Progress bar -->
       <div class="step-progress">
         <div class="step-progress-bar">
@@ -124,7 +155,7 @@ function prevStep() {
       <!-- Step 1: Age Group -->
       <transition name="slide" mode="out-in">
         <div v-if="currentStep === 1" key="step1" class="step">
-          <h1 class="step-title">How old are you?</h1>
+          <h1 class="step-title">What describes your stage?</h1>
           <p class="step-subtitle">This helps us tailor the content to your life stage</p>
 
           <div class="options-grid options-grid--2col">
@@ -137,7 +168,6 @@ function prevStep() {
             >
               <div class="option-card-header">
                 <span class="option-label">{{ option.label }}</span>
-                <span class="option-badge">{{ option.range }}</span>
               </div>
               <p class="option-description">{{ option.description }}</p>
             </button>
@@ -210,12 +240,102 @@ function prevStep() {
 </template>
 
 <style scoped>
+/* Intro Animations & Styles */
+.intro-screen {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-background);
+  z-index: 50;
+}
+
+.barry-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.barry-img-intro {
+  height: 40vh;
+  min-height: 250px;
+  width: auto;
+  drop-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  display: block;
+}
+
+.speech-bubble {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 25px;
+  background: white;
+  color: black;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  font-size: 1.125rem;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  border: 2px solid var(--color-primary);
+  width: max-content;
+  max-width: 300px;
+  line-height: 1.4;
+  z-index: 10;
+}
+
+.speech-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 10px 10px 0;
+  border-style: solid;
+  border-color: var(--color-primary) transparent transparent transparent;
+}
+
+.speech-bubble::before {
+  content: "";
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 9px 9px 0;
+  border-style: solid;
+  border-color: white transparent transparent transparent;
+  z-index: 1;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.pop-enter-active,
+.pop-leave-active {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.pop-enter-from,
+.pop-leave-to {
+  opacity: 0;
+  transform: scale(0.8) translateY(20px);
+}
+
 .onboarding {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2rem 1.5rem;
+  position: relative;
 }
 
 .onboarding-container {
@@ -308,7 +428,6 @@ function prevStep() {
 .option-card:hover {
   border-color: var(--color-primary);
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
 }
 
 .option-card--selected {
