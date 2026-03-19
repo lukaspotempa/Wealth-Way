@@ -1,0 +1,78 @@
+/* ── Shop Panel ─────────────────────────────────────────────────────── */
+.shop-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shop-balance {
+  font-size: 14px;
+  color: #aaa;
+  text-align: center;
+}
+
+.shop-balance strong {
+  color: #4CAF50;
+}
+
+.shop-items {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.shop-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.15s ease;
+}
+
+.shop-item:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.shop-item.unaffordable {
+  opacity: 0.5;
+}
+
+.shop-item.owned {
+  opacity: 0.6;
+  border-color: rgba(156, 39, 176, 0.3);
+}
+
+.shop-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.shop-item-name {
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+}
+
+.shop-item-cost {
+  font-weight: 700;
+  font-size: 14px;
+  color: #FDD835;
+}
+
+.shop-item-desc {
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+  margin: 0;
+  flex: 1;
+}
+
+.shop-buy-btn {
+  align-self: stretch;
+  padding: 6px 0 !important;
+  font-size: 13px !important;
+}
