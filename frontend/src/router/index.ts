@@ -36,6 +36,12 @@ const router = createRouter({
       meta: { requiresOnboarding: true },
     },
     {
+      path: '/game/:id',
+      name: 'game',
+      component: () => import('@/views/InvestmentGameView.vue'),
+      meta: { requiresOnboarding: true },
+    },
+    {
       path: '/challenge',
       name: 'challenge',
       component: () => import('@/views/ChallengeView.vue'),
@@ -52,6 +58,11 @@ const router = createRouter({
 })
 
 router.beforeEach((to) => {
+  // Multiplayer join links arrive as /?join=CODE (root URL safe for static hosts)
+  if (to.query.join && to.path !== '/autobattle') {
+    return { path: '/autobattle', query: { join: to.query.join } }
+  }
+
   const userStore = useUserStore()
 
   if (to.meta.requiresOnboarding && !userStore.profile.onboardingComplete) {
