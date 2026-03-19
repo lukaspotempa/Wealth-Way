@@ -1,7 +1,7 @@
 import type { ServerMessage } from '@/types/multiplayer'
 
-const API_BASE = 'http://localhost:8000'
-const WS_BASE = 'ws://localhost:8000'
+const API_BASE = 'https://api.investmentgame.de'
+const WS_BASE = 'ws://api.investmentgame.de'
 
 export async function createLobby(name: string): Promise<{ lobbyCode: string; playerId: string }> {
   const res = await fetch(`${API_BASE}/api/lobby/create?name=${encodeURIComponent(name)}`, { method: 'POST' })
