@@ -879,11 +879,6 @@ const resultInsights = computed(() => {
 
           <!-- Header row: bull/bear + year counter -->
           <div class="battle-header">
-            <div class="battle-combatants">
-              <span class="battle-bull" role="img" aria-label="Bull">&#128002;</span>
-              <span class="battle-vs">VS</span>
-              <span class="battle-bear" role="img" aria-label="Bear">&#128059;</span>
-            </div>
             <div class="battle-year-info">
               <span class="battle-year-label">Simulating year</span>
               <span class="battle-year-value">{{ currentBattleYear }}</span>

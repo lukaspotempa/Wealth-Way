@@ -218,12 +218,20 @@ export function calculateCompoundGrowth() {
 }
 
 export const lesson2Slides = [
-  // ── Slide 1: The Analogy ────────────────────────────────────────────────────
+  // ── Slide 1: The Video ──────────────────────────────────────────────────────
   {
     id: 1,
+    type: 'video' as const,
+    title: 'The Oak Tree and the Weather Watcher',
+    videoUrl: '/Garden_Acorn_lesson.mp4',
+    content: 'Watch this short story about two different gardeners.',
+  },
+  // ── Slide 2: The Analogy ────────────────────────────────────────────────────
+  {
+    id: 2,
     type: 'analogy-intro' as const,
     title: 'The Oak Tree and the Weather Watcher',
-    icon: '<div>Test</div>',
+    icon: 'TreePine',
     content: `Imagine you plant an acorn in your garden. You water it, give it sunlight, and then — you leave it alone.
 
 You don't dig it up every time a storm is forecast. You don't replant it on sunny days hoping for faster growth. You simply give it time.
@@ -232,46 +240,46 @@ Your neighbour does the opposite. Every week he digs up his acorn to check the r
 
 The market works exactly the same way. The patient gardener wins.`,
   },
-  // ── Slide 2: Why timing fails ───────────────────────────────────────────────
+  // ── Slide 3: Why timing fails ───────────────────────────────────────────────
   {
-    id: 2,
+    id: 3,
     type: 'key-insight' as const,
     title: 'Why Timing the Market Fails',
     insights: [
       {
-        icon: '📅',
+        icon: 'CalendarDays',
         heading: 'The best days cluster around crashes',
         text: 'The biggest single-day gains almost always happen right after the sharpest drops — exactly when fear-driven investors have already sold.',
       },
       {
-        icon: '🔮',
+        icon: 'Sparkles',
         heading: 'Nobody can predict them',
         text: 'Even professional fund managers with teams of analysts consistently fail to call market turning points with any reliability.',
       },
       {
-        icon: '💸',
+        icon: 'Banknote',
         heading: 'Missing a handful of days costs a fortune',
         text: 'An investor who missed only the 10 best trading days in the S&P 500 over 20 years ended up with less than half the money of someone who did nothing.',
       },
     ],
   },
-  // ── Slide 3: Missed-days chart ──────────────────────────────────────────────
+  // ── Slide 4: Missed-days chart ──────────────────────────────────────────────
   {
-    id: 3,
+    id: 4,
     type: 'chart-missed-days' as const,
     title: 'The Cost of Jumping In and Out',
     content: 'CHF 10,000 invested in the S&P 500 from 2004 to 2023. Each bar shows what happens when you miss a growing number of the market\'s best single days.',
   },
-  // ── Slide 4: Compounding chart ──────────────────────────────────────────────
+  // ── Slide 5: Compounding chart ──────────────────────────────────────────────
   {
-    id: 4,
+    id: 5,
     type: 'chart-compound-growth' as const,
     title: 'The Patient Gardener\'s Reward: Compounding',
     content: 'CHF 10,000 left untouched for 30 years. The only difference is where it is invested. Time does the work — not perfect timing.',
   },
-  // ── Slide 5: One question ───────────────────────────────────────────────────
+  // ── Slide 6: One question ───────────────────────────────────────────────────
   {
-    id: 5,
+    id: 6,
     type: 'question' as const,
     title: 'Quick Check',
     question: 'An investor misses the 20 best trading days in a 20-year period. What is the most likely outcome compared to staying fully invested?',
@@ -291,9 +299,9 @@ The market works exactly the same way. The patient gardener wins.`,
       },
     ],
   },
-  // ── Slide 6: Summary ────────────────────────────────────────────────────────
+  // ── Slide 7: Summary ────────────────────────────────────────────────────────
   {
-    id: 6,
+    id: 7,
     type: 'summary' as const,
     title: 'What You Should Remember',
     points: [
@@ -359,17 +367,17 @@ An ETF is the basket. It spreads your money across hundreds of companies at once
     title: 'What Exactly Is an ETF?',
     insights: [
       {
-        icon: '📦',
+        icon: 'Package',
         heading: 'A ready-made basket of investments',
         text: 'ETF stands for Exchange-Traded Fund. It bundles hundreds of stocks (or bonds) into a single product you can buy just like one share.',
       },
       {
-        icon: '📉',
+        icon: 'LineChart',
         heading: 'It tracks an index automatically',
         text: 'Most ETFs simply follow a market index like the MSCI World or the S&P 500. No fund manager guessing — just the market, automatically.',
       },
       {
-        icon: '💰',
+        icon: 'Coins',
         heading: 'Extremely low costs',
         text: 'Because no active management is needed, ETF fees (called TER) are typically 0.1%–0.5% per year, versus 1%–2% for actively managed funds.',
       },
