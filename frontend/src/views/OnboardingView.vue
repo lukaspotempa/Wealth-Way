@@ -261,8 +261,10 @@ function prevStep() {
 .barry-img-intro {
   height: 40vh;
   min-height: 250px;
+  max-width: 100%;
   width: auto;
-  drop-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  object-fit: contain;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.2));
   display: block;
 }
 
