@@ -1,8 +1,9 @@
-# The Wealthy Way
+# The Wealthy Way > [Try it Yourself](https://investmentgame.de)
 ### *The Duolingo of Financial Literacy*
 
 > **Build the investing habits that secure your future — one lesson, one battle, one portfolio at a time.**
 
+[Investmentgame.de](https://investmentgame.de)
 ---
 
 ## The Problem
