@@ -186,11 +186,6 @@ function handlePlayAgain() {
     <!-- RACING PHASE -->
     <div v-if="racePhase === 'racing'" class="race-phase">
       <div class="race-header">
-        <div class="race-combatants">
-          <span class="race-bull">&#128002;</span>
-          <span class="race-vs">VS</span>
-          <span class="race-bear">&#128059;</span>
-        </div>
         <div class="race-year-info">
           <span class="race-year-label">Year</span>
           <span class="race-year-value">{{ currentYear || startYear }}</span>
