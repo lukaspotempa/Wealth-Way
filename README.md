@@ -185,6 +185,12 @@ Built with conviction that **financial literacy is not a luxury — it's a right
 
 We believe the best time to learn to invest is at age 12. The second best time is today.
 
+> <img src="https://avatars.githubusercontent.com/lukaspotempa" height="60px" title="Lukas P." alt="Portrait"/> | <a href="https://github.com/lukaspotempa" target="_blank">@LukasPotempa</a>
+
+> <img src="https://avatars.githubusercontent.com/MaxWinzek" height="60px" title="Max W." alt="Portrait"/> | <a href="https://github.com/MaxWinzek" target="_blank">@MaxWinzek</a>
+
+> <img src="https://avatars.githubusercontent.com/Erijl" height="60px" title="Justus M." alt="Portrait"/> | <a href="https://github.com/erijl" target="_blank">@Erijl</a>
+
 ---
 
 *The Wealthy Way — because your future self deserves better than a savings account.*
