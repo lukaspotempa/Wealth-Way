@@ -34,8 +34,6 @@ async def join_lobby_endpoint(code: str, name: str = Query(..., min_length=1, ma
             raise HTTPException(404, "Lobby not found")
         elif lobby.state != LobbyState.WAITING:
             raise HTTPException(409, "Game already started")
-        else:
-            raise HTTPException(409, "Lobby is full (max 10 players)")
     player_id, lobby = result
     return {"playerId": player_id, "lobbyCode": lobby.code}
 

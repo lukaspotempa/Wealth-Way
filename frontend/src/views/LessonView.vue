@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useJourneyStore } from '@/stores/journey'
+import { TreePine, ShoppingBasket, CalendarDays, Sparkles, Banknote, Package, LineChart, Coins, Play } from 'lucide-vue-next'
 import { lesson1Slides, lesson2Slides, lesson3Slides, quiz1Slides, calculateChildrenSavings } from '@/services/lessonData'
 import NetWorthChart from '@/components/lessons/NetWorthChart.vue'
 import InflationChart from '@/components/lessons/InflationChart.vue'
@@ -19,6 +20,28 @@ const isQuiz = computed(() => route.name === 'quiz')
 const id = computed(() => route.params.id as string)
 
 const currentSlide = ref(0)
+const isVideoPlaying = ref(false)
+const videoPlayer = ref<HTMLVideoElement | null>(null)
+
+const playVideo = () => {
+  if (videoPlayer.value) {
+    videoPlayer.value.play()
+  }
+}
+
+const getIconComponent = (iconName: string) => {
+  const icons: Record<string, any> = {
+    TreePine,
+    ShoppingBasket,
+    CalendarDays,
+    Sparkles,
+    Banknote,
+    Package,
+    LineChart,
+    Coins
+  }
+  return icons[iconName] || null
+}
 
 type GenericSlide = {
   type: string
@@ -227,11 +250,47 @@ const currentSlideData = computed(() => slides.value[currentSlide.value])
             </div>
           </template>
 
+          <!-- Video Slide -->
+          <template v-else-if="currentSlideData?.type === 'video'">
+            <div class="slide-card slide-card--video">
+              <h2>{{ currentSlideData.title }}</h2>
+              <p class="slide-text" v-if="currentSlideData.content">{{ currentSlideData.content }}</p>
+              
+              <div class="custom-video-wrapper">
+                <video 
+                  ref="videoPlayer" 
+                  class="custom-video" 
+                  preload="metadata"
+                  @play="isVideoPlaying = true"
+                  @pause="isVideoPlaying = false"
+                  @ended="isVideoPlaying = false"
+                  controls
+                >
+                  <source :src="currentSlideData.videoUrl" type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+                <div 
+                  class="custom-play-overlay" 
+                  v-if="!isVideoPlaying"
+                  @click="playVideo"
+                >
+                  <div class="play-button-circle">
+                    <Play :size="48" fill="currentColor" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+
           <!-- Analogy Intro (Oak Tree / Fruit Basket) -->
           <template v-else-if="currentSlideData?.type === 'analogy-intro'">
             <div class="slide-card slide-card--analogy">
-              <div class="analogy-icon">{{ currentSlideData.icon }}</div>
+              <div class="analogy-icon">
+                <component :is="getIconComponent(currentSlideData.icon)" :size="48" v-if="getIconComponent(currentSlideData.icon)" />
+                <span v-else>{{ currentSlideData.icon }}</span>
+              </div>
               <h2>{{ currentSlideData.title }}</h2>
+
               <div class="analogy-text">
                 <p
                   v-for="(para, i) in currentSlideData.content.split('\n\n')"
@@ -251,7 +310,10 @@ const currentSlideData = computed(() => slides.value[currentSlide.value])
                 :key="i"
                 class="key-insight-card"
               >
-                <div class="ki-icon">{{ insight.icon }}</div>
+                <div class="ki-icon">
+                  <component :is="getIconComponent(insight.icon)" :size="32" v-if="getIconComponent(insight.icon)" />
+                  <span v-else>{{ insight.icon }}</span>
+                </div>
                 <div class="ki-body">
                   <h3 class="ki-heading">{{ insight.heading }}</h3>
                   <p class="ki-text">{{ insight.text }}</p>
@@ -791,6 +853,68 @@ html.dark .strategy-badge {
   transform: translateX(-20px);
 }
 
+/* ── Video slide ──────────────────────────────────────────────────────────── */
+.slide-card--video {
+  text-align: center;
+}
+
+.custom-video-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 1.5rem auto;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: #000;
+  box-shadow: var(--shadow-lg);
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.custom-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.custom-play-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.custom-play-overlay:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.play-button-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: var(--color-background);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.play-button-circle:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
 /* ── Analogy intro slide ──────────────────────────────────────────────────── */
 .slide-card--analogy {
   text-align: left;
@@ -826,7 +950,7 @@ html.dark .strategy-badge {
 
 .key-insight-card {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 1rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -839,7 +963,9 @@ html.dark .strategy-badge {
   line-height: 1;
   flex-shrink: 0;
   width: 2.5rem;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ki-body {

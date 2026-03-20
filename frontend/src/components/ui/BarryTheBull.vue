@@ -9,6 +9,10 @@ const props = defineProps({
   time: {
     type: Number,
     required: true
+  },
+  id: {
+    type: String,
+    required: false
   }
 })
 
@@ -16,6 +20,12 @@ const isVisible = ref(false)
 let timer: ReturnType<typeof setTimeout> | null = null
 
 onMounted(() => {
+  if (props.id) {
+    const hasSeen = localStorage.getItem(`barry_tip_${props.id}`)
+    if (hasSeen) return
+    localStorage.setItem(`barry_tip_${props.id}`, 'true')
+  }
+
   isVisible.value = true
   if (props.time > 0) {
     timer = setTimeout(() => {

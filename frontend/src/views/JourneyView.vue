@@ -274,10 +274,13 @@ const greeting = computed(() => {
             <span class="tooltip-type" :style="{ backgroundColor: selectedNode.color }">{{ selectedNode.type }}</span>
           </div>
           <p class="tooltip-desc">{{ selectedNode.description }}</p>
-          <div class="tooltip-actions">
+          <div class="tooltip-actions" v-if="selectedNode.type !== 'checkpoint'">
             <button class="tooltip-btn" @click="startNode(selectedNode)">
               Start {{ selectedNode.type === 'challenge' ? 'Challenge' : selectedNode.type === 'quiz' ? 'Quiz' : 'Lesson' }}
             </button>
+          </div>
+          <div class="tooltip-actions checkpoint-msg" v-else>
+            <p>You have reached the {{ selectedNode.title }} checkpoint!</p>
           </div>
           <div class="tooltip-arrow"></div>
         </div>
@@ -289,6 +292,7 @@ const greeting = computed(() => {
     <!-- Barry Introduction -->
     <BarryTheBull
       v-if="journeyStore.progressPercent === 0"
+      id="first-lesson-tip"
       text="Welcome! Start your first lesson by clicking on the flashing lesson node."
       :time="8"
     />
@@ -490,6 +494,15 @@ const greeting = computed(() => {
 .node-tooltip .tooltip-actions {
   display: flex;
   justify-content: stretch;
+}
+
+.node-tooltip .checkpoint-msg p {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-success);
+  margin: 0;
+  text-align: center;
+  width: 100%;
 }
 
 .node-tooltip .tooltip-btn {

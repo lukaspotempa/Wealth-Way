@@ -86,8 +86,18 @@ function createChart() {
           borderColor: c.tooltipBorder,
           borderWidth: 1,
           padding: 12,
+          usePointStyle: true,
+          boxPadding: 4,
           callbacks: {
             label: (ctx) => `${ctx.dataset.label}: CHF ${(ctx.parsed.y as number).toLocaleString('de-CH')}`,
+            labelColor: (context) => {
+              const color = context.dataset.borderColor as string
+              return {
+                borderColor: color,
+                backgroundColor: color,
+                borderWidth: 0,
+              }
+            }
           },
         },
       },
