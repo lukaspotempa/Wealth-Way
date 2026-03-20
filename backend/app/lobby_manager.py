@@ -88,8 +88,6 @@ def join_lobby(code: str, player_name: str) -> Optional[tuple[str, Lobby]]:
         return None
     if lobby.state != LobbyState.WAITING:
         return None
-    if len(lobby.players) >= 10:
-        return None
     player_id = str(uuid.uuid4())
     player = Player(id=player_id, name=player_name, is_host=False)
     lobby.players[player_id] = player
