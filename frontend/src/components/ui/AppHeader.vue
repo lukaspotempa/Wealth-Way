@@ -20,7 +20,7 @@ const showProgress = computed(() => {
   <header class="app-header">
     <div class="header-inner">
       <router-link to="/" class="logo">
-        <img src="/postfinance_logo.png" alt="Logo" class="logo-img" />
+        <img src="/favicon.png" alt="Logo" class="logo-img" />
         <span class="logo-text">The Wealthy Way</span>
       </router-link>
 

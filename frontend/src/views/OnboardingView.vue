@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { useDisclaimer } from '@/composables/useDisclaimer'
 import type { AgeGroup, ExperienceLevel, FinancialGoal } from '@/types'
 
 const router = useRouter()
 const userStore = useUserStore()
+const { disclaimerAccepted } = useDisclaimer()
 
 const currentStep = ref(1)
 const totalSteps = 3
@@ -14,17 +16,29 @@ const showIntro = ref(true)
 const isMovingDown = ref(false)
 const showSpeech = ref(false)
 
-onMounted(() => {
-  // Wait a moment before showing the speech bubble
+function startBarryIntro() {
   setTimeout(() => {
     showSpeech.value = true
   }, 500)
-
-  // Fade out both Barry and his speech bubble simultaneously
   setTimeout(() => {
     showIntro.value = false
     showSpeech.value = false
   }, 3500)
+}
+
+onMounted(() => {
+  if (disclaimerAccepted.value) {
+    // Returning user — start immediately
+    startBarryIntro()
+  } else {
+    // First visit — wait for the disclaimer to be accepted
+    const stop = watch(disclaimerAccepted, (accepted) => {
+      if (accepted) {
+        stop()
+        startBarryIntro()
+      }
+    })
+  }
 })
 
 const progress = computed(() => (currentStep.value / totalSteps) * 100)
